@@ -1,1 +1,15 @@
-<router-outlet />
+@if (authService.isAuthenticated()) {
+  <header class="app-shell-header">
+    <a class="brand" routerLink="/sponsorship-requests">Sponsorship Approval</a>
+    <nav class="primary-nav" aria-label="Primary navigation">
+      @for (item of navigationService.visibleItems(); track item.path) {
+        <a [routerLink]="item.path" routerLinkActive="active">{{ item.label }}</a>
+      }
+    </nav>
+    <button type="button" class="logout-button" (click)="logout()">Sign out</button>
+  </header>
+}
+
+<main class="app-shell-main">
+  <router-outlet />
+</main>
