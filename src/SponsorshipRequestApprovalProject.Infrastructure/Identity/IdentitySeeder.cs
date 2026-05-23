@@ -6,6 +6,7 @@ namespace SponsorshipRequestApprovalProject.Infrastructure.Identity;
 
 public static class IdentitySeeder
 {
+            Email: "requestor.demo@sponsorship.local",
     public static async Task SeedIdentityAsync(this IServiceProvider serviceProvider)
     {
         using var scope = serviceProvider.CreateScope();
