@@ -8,7 +8,7 @@ using SponsorshipRequestApprovalProject.Application.Features.Auth.DTOs;
 namespace SponsorshipRequestApprovalProject.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/auth")]
 public class AuthController(ISender sender) : ControllerBase
 {
     [AllowAnonymous]
