@@ -1,0 +1,12 @@
+bin/
+obj/
+.vs/
+.idea/
+node_modules/
+dist/
+.angular/
+coverage/
+*.user
+*.suo
+*.sqlite
+*.log
