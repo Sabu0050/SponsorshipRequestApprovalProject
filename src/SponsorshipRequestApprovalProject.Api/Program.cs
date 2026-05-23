@@ -5,9 +5,24 @@ using SponsorshipRequestApprovalProject.Infrastructure;
 using SponsorshipRequestApprovalProject.Infrastructure.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
+const string CorsPolicyName = "ClientCors";
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>()
+    ?? ["http://localhost:4200"];
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(CorsPolicyName, policy =>
+    {
+        policy
+            .WithOrigins(allowedOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new Microsoft.OpenApi.OpenApiInfo
@@ -44,10 +59,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseRouting();
+app.UseCors(CorsPolicyName);
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
+app.MapControllers().RequireCors(CorsPolicyName);
 
 await app.Services.SeedIdentityAsync();
 
