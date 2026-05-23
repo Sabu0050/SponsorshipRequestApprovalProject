@@ -12,5 +12,5 @@ public record WorkflowHistoryDto(
     string PerformedByName,
     string? AssignedToId,
     string? AssignedToName,
-    string? Comments,
+    string? Remarks,
     DateTimeOffset PerformedAt);

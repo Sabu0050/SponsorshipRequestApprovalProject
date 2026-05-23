@@ -36,7 +36,7 @@ public class GetWorkflowHistoryQueryHandler(IApplicationDbContext dbContext)
                 history.PerformedByName,
                 history.AssignedToId,
                 history.AssignedToName,
-                history.Comments,
+                history.Remarks,
                 history.PerformedAt))
             .ToListAsync(cancellationToken);
 

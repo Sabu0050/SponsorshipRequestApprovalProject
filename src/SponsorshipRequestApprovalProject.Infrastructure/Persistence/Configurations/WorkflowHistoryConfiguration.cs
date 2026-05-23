@@ -40,7 +40,7 @@ public class WorkflowHistoryConfiguration : IEntityTypeConfiguration<WorkflowHis
         builder.Property(history => history.AssignedToName)
             .HasMaxLength(200);
 
-        builder.Property(history => history.Comments)
+        builder.Property(history => history.Remarks)
             .HasMaxLength(2000);
 
         builder.Property(history => history.PerformedAt)

@@ -62,7 +62,7 @@ public class WorkflowTransitionService(IApplicationDbContext dbContext)
             PerformedByName = performedByName,
             AssignedToId = assignedToId,
             AssignedToName = assignedToName,
-            Comments = comments,
+            Remarks = comments,
             PerformedAt = performedAt
         });
 

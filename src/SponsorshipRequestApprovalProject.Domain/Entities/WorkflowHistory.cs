@@ -24,7 +24,7 @@ public class WorkflowHistory
 
     public string? AssignedToName { get; set; }
 
-    public string? Comments { get; set; }
+    public string? Remarks { get; set; }
 
     public DateTimeOffset PerformedAt { get; set; }
 }
