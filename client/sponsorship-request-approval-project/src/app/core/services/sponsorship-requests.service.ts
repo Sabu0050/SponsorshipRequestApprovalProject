@@ -33,24 +33,4 @@ export class SponsorshipRequestsService {
       `sponsorship-requests/${id}/workflow-history`,
       { pageNumber, pageSize });
   }
-
-  submit(id: string, body: unknown) {
-    return this.apiService.post(`sponsorship-requests/${id}/submissions`, body);
-  }
-
-  managerApprove(id: string, body: unknown) {
-    return this.apiService.post(`sponsorship-requests/${id}/manager-approvals`, body);
-  }
-
-  financeApprove(id: string, body: unknown) {
-    return this.apiService.post(`sponsorship-requests/${id}/finance-approvals`, body);
-  }
-
-  reject(id: string, body: unknown) {
-    return this.apiService.post(`sponsorship-requests/${id}/rejections`, body);
-  }
-
-  cancel(id: string, body: unknown) {
-    return this.apiService.post(`sponsorship-requests/${id}/cancellations`, body);
-  }
 }

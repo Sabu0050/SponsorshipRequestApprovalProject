@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { tap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { LoginRequest, LoginResult } from '../models/auth.models';
 import { ApiService } from './api.service';
 
@@ -19,7 +19,7 @@ export class AuthService {
   ) {
   }
 
-  login(request: LoginRequest) {
+  login(request: LoginRequest): Observable<LoginResult> {
     return this.apiService.post<LoginResult, LoginRequest>('auth/login', request)
       .pipe(tap(result => this.storeAuth(result)));
   }

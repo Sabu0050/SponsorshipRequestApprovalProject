@@ -24,12 +24,12 @@ export interface SponsorshipRequestListItem {
   requestedAmount: number;
   currencyCode: string;
   status: SponsorshipRequestStatus;
-  currentApproverId?: string | null;
-  currentApproverName?: string | null;
+  currentApproverId: string | null;
+  currentApproverName: string | null;
   createdAt: string;
-  submittedAt?: string | null;
-  approvedAt?: string | null;
-  rejectedAt?: string | null;
+  submittedAt: string | null;
+  approvedAt: string | null;
+  rejectedAt: string | null;
 }
 
 export interface SponsorshipRequestDetail extends SponsorshipRequestListItem {
@@ -37,13 +37,13 @@ export interface SponsorshipRequestDetail extends SponsorshipRequestListItem {
   sponsorshipTypeId: string;
   requesterId: string;
   requesterEmail: string;
-  eventDate?: string | null;
-  sponsorshipStartDate?: string | null;
-  sponsorshipEndDate?: string | null;
-  updatedAt?: string | null;
-  finalDecisionById?: string | null;
-  finalDecisionByName?: string | null;
-  decisionNotes?: string | null;
+  eventDate: string | null;
+  sponsorshipStartDate: string | null;
+  sponsorshipEndDate: string | null;
+  updatedAt: string | null;
+  finalDecisionById: string | null;
+  finalDecisionByName: string | null;
+  decisionNotes: string | null;
   attachments: RequestAttachment[];
 }
 
@@ -60,12 +60,45 @@ export interface WorkflowHistory {
   id: string;
   sponsorshipRequestId: string;
   action: WorkflowAction;
-  fromStatus?: SponsorshipRequestStatus | null;
+  fromStatus: SponsorshipRequestStatus | null;
   toStatus: SponsorshipRequestStatus;
   performedById: string;
   performedByName: string;
-  assignedToId?: string | null;
-  assignedToName?: string | null;
-  comments?: string | null;
+  assignedToId: string | null;
+  assignedToName: string | null;
+  remarks: string | null;
   performedAt: string;
+}
+
+export interface SponsorshipRequestWorkflowResult {
+  sponsorshipRequestId: string;
+  status: SponsorshipRequestStatus;
+  action: WorkflowAction;
+  performedAt: string;
+}
+
+export interface SubmitSponsorshipRequestPayload {
+  assignedManagerId: string | null;
+  assignedManagerName: string | null;
+  comments: string | null;
+}
+
+export interface ManagerApprovalPayload {
+  assignedFinanceReviewerId: string | null;
+  assignedFinanceReviewerName: string | null;
+  comments: string | null;
+}
+
+export interface FinanceApprovalPayload {
+  comments: string | null;
+}
+
+export interface RejectSponsorshipRequestPayload {
+  expectedCurrentStatus: SponsorshipRequestStatus;
+  comments: string;
+}
+
+export interface CancelSponsorshipRequestPayload {
+  expectedCurrentStatus: SponsorshipRequestStatus;
+  comments: string | null;
 }

@@ -12,6 +12,10 @@ export class SponsorshipTypesService {
     return this.apiService.get<SponsorshipType[]>('sponsorship-types', { isActive });
   }
 
+  getActiveTypes(): Observable<SponsorshipType[]> {
+    return this.getTypes(true);
+  }
+
   getType(id: string): Observable<SponsorshipType> {
     return this.apiService.get<SponsorshipType>(`sponsorship-types/${id}`);
   }
