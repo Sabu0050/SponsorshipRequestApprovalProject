@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -20,6 +20,7 @@ export class AuthPageComponent {
   });
 
   constructor(
+    private readonly activatedRoute: ActivatedRoute,
     private readonly authService: AuthService,
     private readonly formBuilder: FormBuilder,
     private readonly router: Router
@@ -36,7 +37,10 @@ export class AuthPageComponent {
     this.loginFailed.set(false);
 
     this.authService.login(this.form.getRawValue()).subscribe({
-      next: () => this.router.navigate(['/sponsorship-requests']),
+      next: () => {
+        const returnUrl = this.activatedRoute.snapshot.queryParamMap.get('returnUrl');
+        this.router.navigateByUrl(returnUrl || '/sponsorship-requests');
+      },
       error: () => {
         this.isSubmitting.set(false);
         this.loginFailed.set(true);

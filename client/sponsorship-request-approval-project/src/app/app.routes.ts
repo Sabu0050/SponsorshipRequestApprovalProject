@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
-import { roleGuard } from './core/guards/role.guard';
 import { ApplicationRole } from './core/models/roles.model';
 
 export const routes: Routes = [
@@ -22,7 +21,7 @@ export const routes: Routes = [
   },
   {
     path: 'approvals',
-    canActivate: [authGuard, roleGuard],
+    canActivate: [authGuard],
     data: {
       roles: [ApplicationRole.Manager, ApplicationRole.FinanceAdmin]
     },
@@ -31,7 +30,7 @@ export const routes: Routes = [
   },
   {
     path: 'admin',
-    canActivate: [authGuard, roleGuard],
+    canActivate: [authGuard],
     data: {
       roles: [ApplicationRole.SystemAdmin]
     },

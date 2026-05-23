@@ -1,17 +1,38 @@
-import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
 export const jwtInterceptor: HttpInterceptorFn = (request, next) => {
-  const token = inject(AuthService).getToken();
+  const authService = inject(AuthService);
+  const router = inject(Router);
+  const token = authService.getToken();
+  const isApiRequest = request.url.startsWith('/api');
+  const isLoginRequest = request.url.includes('/auth/login');
 
-  if (!token) {
-    return next(request);
-  }
+  const requestWithToken = token && isApiRequest
+    ? request.clone({
+      setHeaders: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    : request;
 
-  return next(request.clone({
-    setHeaders: {
-      Authorization: `Bearer ${token}`
-    }
-  }));
+  return next(requestWithToken).pipe(
+    catchError((error: unknown) => {
+      if (error instanceof HttpErrorResponse
+          && (error.status === 401 || error.status === 403)
+          && !isLoginRequest) {
+        authService.logout(false);
+        router.navigate(['/auth/login'], {
+          queryParams: {
+            returnUrl: router.url
+          }
+        });
+      }
+
+      return throwError(() => error);
+    })
+  );
 };

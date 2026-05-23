@@ -24,11 +24,14 @@ export class AuthService {
       .pipe(tap(result => this.storeAuth(result)));
   }
 
-  logout(): void {
+  logout(redirect = true): void {
     localStorage.removeItem(tokenStorageKey);
     localStorage.removeItem(authStorageKey);
     this.authState.set(null);
-    this.router.navigate(['/auth/login']);
+
+    if (redirect) {
+      this.router.navigate(['/auth/login']);
+    }
   }
 
   getToken(): string | null {
