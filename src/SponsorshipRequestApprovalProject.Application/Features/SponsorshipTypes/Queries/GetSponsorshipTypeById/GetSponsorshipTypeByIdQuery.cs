@@ -1,0 +1,6 @@
+using SponsorshipRequestApprovalProject.Application.Common.CQRS;
+using SponsorshipRequestApprovalProject.Application.Features.SponsorshipTypes.DTOs;
+
+namespace SponsorshipRequestApprovalProject.Application.Features.SponsorshipTypes.Queries.GetSponsorshipTypeById;
+
+public record GetSponsorshipTypeByIdQuery(Guid SponsorshipTypeId) : IQuery<SponsorshipTypeDto?>;
