@@ -20,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\SponsorshipRequestApprovalProject.Application\SponsorshipRequestApprovalProject.Application.csproj" />
     <ProjectReference Include="..\..\src\SponsorshipRequestApprovalProject.Domain\SponsorshipRequestApprovalProject.Domain.csproj" />
+    <ProjectReference Include="..\..\src\SponsorshipRequestApprovalProject.Infrastructure\SponsorshipRequestApprovalProject.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
