@@ -4,10 +4,8 @@ public enum WorkflowAction
 {
     Created = 0,
     Submitted = 1,
-    Assigned = 2,
-    Reviewed = 3,
-    Approved = 4,
+    ManagerApproved = 2,
+    FinanceApproved = 3,
     Rejected = 5,
-    ReturnedForChanges = 6,
     Cancelled = 7
 }

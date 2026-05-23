@@ -1,12 +1,13 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using SponsorshipRequestApprovalProject.Application.Common.Interfaces;
 using SponsorshipRequestApprovalProject.Domain.Entities;
 using SponsorshipRequestApprovalProject.Infrastructure.Identity;
 
 namespace SponsorshipRequestApprovalProject.Infrastructure.Persistence;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-    : IdentityDbContext<ApplicationUser>(options)
+    : IdentityDbContext<ApplicationUser>(options), IApplicationDbContext
 {
     public DbSet<SponsorshipRequest> SponsorshipRequests => Set<SponsorshipRequest>();
 

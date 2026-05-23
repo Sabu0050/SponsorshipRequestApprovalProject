@@ -2,6 +2,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using SponsorshipRequestApprovalProject.Application.Common.Behaviors;
+using SponsorshipRequestApprovalProject.Application.Features.SponsorshipRequests.Commands.Common;
 
 namespace SponsorshipRequestApprovalProject.Application;
 
@@ -14,6 +15,7 @@ public static class DependencyInjection
 
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        services.AddScoped<WorkflowTransitionService>();
 
         return services;
     }

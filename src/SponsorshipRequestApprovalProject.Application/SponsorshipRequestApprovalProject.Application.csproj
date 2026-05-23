@@ -3,6 +3,7 @@
   <ItemGroup>
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
     <PackageReference Include="MediatR" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
     <ProjectReference Include="..\SponsorshipRequestApprovalProject.Domain\SponsorshipRequestApprovalProject.Domain.csproj" />
   </ItemGroup>
 
