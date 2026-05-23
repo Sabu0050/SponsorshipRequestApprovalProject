@@ -3,7 +3,9 @@ using SponsorshipRequestApprovalProject.Application.Common.Exceptions;
 
 namespace SponsorshipRequestApprovalProject.Api.Middleware;
 
-public class ValidationExceptionMiddleware(RequestDelegate next)
+public class GlobalExceptionHandlingMiddleware(
+    RequestDelegate next,
+    ILogger<GlobalExceptionHandlingMiddleware> logger)
 {
     public async Task InvokeAsync(HttpContext context)
     {
@@ -25,14 +27,25 @@ public class ValidationExceptionMiddleware(RequestDelegate next)
                         group => group.Select(error => error.ErrorMessage).ToArray())
             });
         }
-        catch (WorkflowTransitionException exception)
+        catch (BusinessRuleException exception)
         {
-            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            context.Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
             await context.Response.WriteAsJsonAsync(new
             {
-                title = "Invalid workflow transition.",
-                status = StatusCodes.Status400BadRequest,
+                title = "Business rule violation.",
+                status = StatusCodes.Status422UnprocessableEntity,
                 detail = exception.Message
+            });
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Unhandled exception occurred while processing request.");
+
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            await context.Response.WriteAsJsonAsync(new
+            {
+                title = "An unexpected error occurred.",
+                status = StatusCodes.Status500InternalServerError
             });
         }
     }
