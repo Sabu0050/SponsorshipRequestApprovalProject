@@ -10,5 +10,9 @@ public class SponsorshipType
 
     public bool IsActive { get; set; }
 
+    public DateTimeOffset CreatedAt { get; set; }
+
+    public DateTimeOffset? UpdatedAt { get; set; }
+
     public ICollection<SponsorshipRequest> SponsorshipRequests { get; set; } = [];
 }

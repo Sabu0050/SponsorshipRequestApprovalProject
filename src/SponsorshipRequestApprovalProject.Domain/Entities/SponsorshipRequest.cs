@@ -38,6 +38,8 @@ public class SponsorshipRequest
 
     public DateTimeOffset CreatedAt { get; set; }
 
+    public DateTimeOffset? UpdatedAt { get; set; }
+
     public DateTimeOffset? SubmittedAt { get; set; }
 
     public DateTimeOffset? ApprovedAt { get; set; }
@@ -55,4 +57,6 @@ public class SponsorshipRequest
     public string? DecisionNotes { get; set; }
 
     public ICollection<WorkflowHistory> WorkflowHistories { get; set; } = [];
+
+    public ICollection<RequestAttachment> Attachments { get; set; } = [];
 }
