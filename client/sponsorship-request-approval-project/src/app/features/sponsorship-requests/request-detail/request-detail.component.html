@@ -1,0 +1,43 @@
+@if (item) {
+  <section class="page">
+    <h2>{{ item.title }}</h2>
+    <div class="panel">
+      <p><strong>Request No:</strong> {{ item.requestNumber }}</p>
+      <p><strong>Status:</strong> <app-status-badge [status]="item.status" /></p>
+      <p><strong>Requestor:</strong> {{ item.requesterName }}</p>
+      <p><strong>Sponsor:</strong> {{ item.sponsorName }}</p>
+      <p><strong>Event Date:</strong> {{ item.eventDate | date }}</p>
+      <p><strong>Amount:</strong> {{ item.requestedAmount }}</p>
+      <p><strong>Description:</strong> {{ item.description }}</p>
+    </div>
+
+    <div class="panel">
+      <label>Workflow Remarks</label>
+      <textarea [(ngModel)]="remarks" placeholder="Enter remarks"></textarea>
+      <div class="actions">
+        @if (can('Requestor') && normalizeStatus(item.status) === 'Draft') { <button class="primary" (click)="act('Submit')">Submit</button> }
+        @if (can('Requestor') && (normalizeStatus(item.status) === 'Draft' || normalizeStatus(item.status) === 'PendingManagerApproval')) { <button (click)="act('Cancel')">Cancel</button> }
+        @if (can('Manager') && normalizeStatus(item.status) === 'PendingManagerApproval') { <button class="primary" (click)="act('ManagerApprove')">Manager Approve</button><button (click)="act('ManagerReject')">Manager Reject</button> }
+        @if (can('FinanceAdmin') && normalizeStatus(item.status) === 'PendingFinanceReview') { <button class="primary" (click)="act('FinanceApprove')">Finance Approve</button><button (click)="act('FinanceReject')">Finance Reject</button> }
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Workflow History</h3>
+      <table>
+        <thead><tr><th>Date</th><th>Action</th><th>From</th><th>To</th><th>Performed By</th></tr></thead>
+        <tbody>
+          @for (row of history; track row.id) {
+            <tr>
+              <td>{{ row.performedAt | date:'short' }}</td>
+              <td>{{ normalizeAction(row.action) }}</td>
+              <td>{{ normalizeStatus(row.fromStatus) }}</td>
+              <td>{{ normalizeStatus(row.toStatus) }}</td>
+              <td>{{ row.performedByName }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+}

@@ -10,4 +10,6 @@ public record GetSponsorshipRequestsQuery(
     int PageSize,
     SponsorshipRequestStatus? Status,
     string? CurrentUserId,
-    string? CurrentUserRole) : IQuery<PagedResult<SponsorshipRequestListItemDto>>;
+    bool IsSystemAdmin,
+    bool HasManagerApprovalAuthority,
+    bool HasFinanceApprovalAuthority) : IQuery<PagedResult<SponsorshipRequestListItemDto>>;

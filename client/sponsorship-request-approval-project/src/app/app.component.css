@@ -3,47 +3,14 @@
   min-height: 100vh;
 }
 
-.app-shell-header {
-  align-items: center;
-  border-bottom: 1px solid #d8dee8;
-  display: flex;
-  gap: 24px;
-  min-height: 64px;
-  padding: 0 32px;
+.app-shell {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: calc(100vh - 56px);
 }
 
-.brand {
-  color: #182230;
-  font-size: 18px;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.primary-nav {
-  display: flex;
-  flex: 1;
-  gap: 8px;
-}
-
-.primary-nav a {
-  color: #475467;
-  padding: 8px 10px;
-  text-decoration: none;
-}
-
-.primary-nav a.active {
-  color: #0f6b58;
-  font-weight: 700;
-}
-
-.logout-button {
-  background: #ffffff;
-  border: 1px solid #cfd7e6;
-  color: #344054;
-  cursor: pointer;
-  padding: 8px 12px;
-}
-
-.app-shell-main {
-  padding: 32px;
+.content {
+  padding: 16px;
+  background: #f6f8fb;
+  overflow: auto;
 }

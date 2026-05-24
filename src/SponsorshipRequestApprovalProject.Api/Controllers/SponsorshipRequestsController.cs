@@ -3,12 +3,15 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SponsorshipRequestApprovalProject.Api.Contracts.SponsorshipRequests;
+using SponsorshipRequestApprovalProject.Application.Common.Identity;
 using SponsorshipRequestApprovalProject.Application.Common.Models;
 using SponsorshipRequestApprovalProject.Application.Features.SponsorshipRequests.Commands.CancelSponsorshipRequest;
+using SponsorshipRequestApprovalProject.Application.Features.SponsorshipRequests.Commands.CreateSponsorshipRequest;
 using SponsorshipRequestApprovalProject.Application.Features.SponsorshipRequests.Commands.FinanceApproveSponsorshipRequest;
 using SponsorshipRequestApprovalProject.Application.Features.SponsorshipRequests.Commands.ManagerApproveSponsorshipRequest;
 using SponsorshipRequestApprovalProject.Application.Features.SponsorshipRequests.Commands.RejectSponsorshipRequest;
 using SponsorshipRequestApprovalProject.Application.Features.SponsorshipRequests.Commands.SubmitSponsorshipRequest;
+using SponsorshipRequestApprovalProject.Application.Features.SponsorshipRequests.Commands.UpdateSponsorshipRequest;
 using SponsorshipRequestApprovalProject.Application.Features.SponsorshipRequests.DTOs;
 using SponsorshipRequestApprovalProject.Application.Features.SponsorshipRequests.Queries.GetSponsorshipRequestById;
 using SponsorshipRequestApprovalProject.Application.Features.SponsorshipRequests.Queries.GetSponsorshipRequests;
@@ -22,6 +25,57 @@ namespace SponsorshipRequestApprovalProject.Api.Controllers;
 [Route("api/sponsorship-requests")]
 public class SponsorshipRequestsController(ISender sender) : ControllerBase
 {
+    [HttpPost]
+    public async Task<ActionResult<CreateSponsorshipRequestResult>> CreateSponsorshipRequest(
+        CreateSponsorshipRequestRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(
+            new CreateSponsorshipRequestCommand(
+                request.Title,
+                request.Description,
+                request.SponsorshipTypeId,
+                request.SponsorName,
+                request.RequestedAmount,
+                request.CurrencyCode,
+                request.EventDate,
+                request.SponsorshipStartDate,
+                request.SponsorshipEndDate,
+                GetCurrentUserId(),
+                GetCurrentUserName(),
+                GetCurrentUserEmail()),
+            cancellationToken);
+
+        return CreatedAtAction(
+            nameof(GetSponsorshipRequest),
+            new { id = result.Id },
+            result);
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<CreateSponsorshipRequestResult>> UpdateSponsorshipRequest(
+        Guid id,
+        UpdateSponsorshipRequestRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(
+            new UpdateSponsorshipRequestCommand(
+                id,
+                request.Title,
+                request.Description,
+                request.SponsorshipTypeId,
+                request.SponsorName,
+                request.RequestedAmount,
+                request.CurrencyCode,
+                request.EventDate,
+                request.SponsorshipStartDate,
+                request.SponsorshipEndDate,
+                GetCurrentUserId()),
+            cancellationToken);
+
+        return Ok(result);
+    }
+
     [HttpGet]
     public async Task<ActionResult<PagedResult<SponsorshipRequestListItemDto>>> GetSponsorshipRequests(
         [FromQuery] int pageNumber = 1,
@@ -35,7 +89,9 @@ public class SponsorshipRequestsController(ISender sender) : ControllerBase
                 pageSize,
                 status,
                 GetCurrentUserId(),
-                GetCurrentUserRole()),
+                User.IsInRole(ApplicationRoles.SystemAdmin),
+                HasApprovalAuthority(ApprovalStages.Manager),
+                HasApprovalAuthority(ApprovalStages.Finance)),
             cancellationToken);
 
         return Ok(result);
@@ -89,6 +145,11 @@ public class SponsorshipRequestsController(ISender sender) : ControllerBase
         ManagerApprovalRequest request,
         CancellationToken cancellationToken)
     {
+        if (!HasApprovalAuthority(ApprovalStages.Manager))
+        {
+            return Forbid();
+        }
+
         var result = await sender.Send(
             new ManagerApproveSponsorshipRequestCommand(
                 id,
@@ -108,6 +169,11 @@ public class SponsorshipRequestsController(ISender sender) : ControllerBase
         FinanceApprovalRequest request,
         CancellationToken cancellationToken)
     {
+        if (!HasApprovalAuthority(ApprovalStages.Finance))
+        {
+            return Forbid();
+        }
+
         var result = await sender.Send(
             new FinanceApproveSponsorshipRequestCommand(
                 id,
@@ -169,8 +235,20 @@ public class SponsorshipRequestsController(ISender sender) : ControllerBase
             ?? GetCurrentUserId();
     }
 
-    private string? GetCurrentUserRole()
+    private string GetCurrentUserEmail()
     {
-        return User.FindFirstValue(ClaimTypes.Role);
+        return User.FindFirstValue(ClaimTypes.Email)
+            ?? User.FindFirstValue("email")
+            ?? string.Empty;
+    }
+
+    private bool HasApprovalAuthority(string stage)
+    {
+        if (User.IsInRole(ApplicationRoles.SystemAdmin))
+        {
+            return true;
+        }
+
+        return User.Claims.Any(claim => claim.Type == ApprovalStages.ClaimType && claim.Value == stage);
     }
 }

@@ -1,0 +1,44 @@
+<div class="login-wrap">
+  <section class="login-card">
+    <div class="logo">SR</div>
+    <h1>SponsorDesk</h1>
+    <p class="subtitle">Manage sponsorship requests, approvals, and review flow.</p>
+
+    <p class="caption">Choose Role</p>
+    <div class="role-grid">
+      @for (role of rolePresets; track role.role) {
+        <button
+          type="button"
+          class="role-tile"
+          [class.active]="selectedRole === role.role"
+          (click)="selectRolePreset(role.role)">
+          <strong>{{ role.role }}</strong>
+        </button>
+      }
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="grid">
+      <label for="email">Email</label>
+      <input pInputText id="email" type="email" formControlName="email" />
+      @if (form.controls.email.touched && form.controls.email.invalid) { <small>Email is required.</small> }
+
+      <label for="password">Password</label>
+      <p-password inputId="password" formControlName="password" [feedback]="false" [toggleMask]="false" />
+      @if (form.controls.password.touched && form.controls.password.invalid) { <small>Password is required.</small> }
+
+      @if (error) { <p class="error">{{ error }}</p> }
+      <button
+        pButton
+        class="auth-submit"
+        type="submit"
+        [loading]="loading"
+        icon="pi pi-sign-in"
+        iconPos="left"
+        label="Sign In"></button>
+
+      <p class="review-note">
+        Review note: Roles and mapped emails are loaded dynamically from the database for easier assessment usage. Demo password for seeded users: <strong>Demo@12345</strong>.
+      </p>
+    </form>
+  </section>
+</div>

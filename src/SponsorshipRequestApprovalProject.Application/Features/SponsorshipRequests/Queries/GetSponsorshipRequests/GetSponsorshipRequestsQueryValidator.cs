@@ -14,8 +14,5 @@ public class GetSponsorshipRequestsQueryValidator : AbstractValidator<GetSponsor
 
         RuleFor(query => query.CurrentUserId)
             .MaximumLength(450);
-
-        RuleFor(query => query.CurrentUserRole)
-            .MaximumLength(100);
     }
 }

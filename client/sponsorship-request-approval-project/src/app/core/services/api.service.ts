@@ -22,6 +22,14 @@ export class ApiService {
     return this.httpClient.post<TResponse>(this.buildUrl(path), body);
   }
 
+  put<TResponse, TRequest = unknown>(path: string, body: TRequest): Observable<TResponse> {
+    return this.httpClient.put<TResponse>(this.buildUrl(path), body);
+  }
+
+  delete<TResponse>(path: string): Observable<TResponse> {
+    return this.httpClient.delete<TResponse>(this.buildUrl(path));
+  }
+
   private buildUrl(path: string): string {
     return `${this.baseUrl}/${path.replace(/^\/+/, '')}`;
   }

@@ -1,0 +1,64 @@
+<section class="page">
+  @if (!embedded) {
+    <h2>Create Request</h2>
+  }
+  @if (message) { <p>{{ message }}</p> }
+  <form [formGroup]="form" [class.panel]="!embedded" [class.embedded-form]="embedded" class="grid form-grid">
+    <div class="section-title">Basic Information</div>
+
+    <div class="field full">
+      <label>Request Title</label>
+      <input formControlName="title" />
+    </div>
+    <div class="field">
+      <label>Requestor</label>
+      <input formControlName="requestorName" readonly />
+    </div>
+    <div class="field">
+      <label>Department</label>
+      <input formControlName="department" />
+    </div>
+
+    <div class="section-title">Sponsorship Details</div>
+    <div class="field">
+      <label>Sponsorship Type</label>
+      <select formControlName="sponsorshipTypeId">
+        <option value="">Select Type</option>
+        @for (type of sponsorshipTypes; track type.id) {
+          <option [value]="type.id">{{ type.name }}</option>
+        }
+      </select>
+    </div>
+    <div class="field">
+      <label>Event Date</label>
+      <input type="date" formControlName="eventDate" />
+    </div>
+    <div class="field full">
+      <label>Event / Organization Name</label>
+      <input formControlName="eventOrganizationName" />
+    </div>
+    <div class="field full">
+      <label>Requested Amount</label>
+      <input type="number" formControlName="requestedAmount" />
+    </div>
+
+    <div class="section-title">Business Justification</div>
+    <div class="field full">
+      <label>Purpose / Justification</label>
+      <textarea formControlName="purpose"></textarea>
+    </div>
+    <div class="field full">
+      <label>Expected Business Benefit</label>
+      <textarea formControlName="expectedBusinessBenefit"></textarea>
+    </div>
+    <div class="field full">
+      <label>Remarks</label>
+      <textarea formControlName="remarks"></textarea>
+    </div>
+
+    <div class="actions centered">
+      <button type="button" [disabled]="saving" (click)="save(false)"><i class="pi pi-file"></i>Save as Draft</button>
+      <button type="button" class="primary" [disabled]="saving" (click)="save(true)"><i class="pi pi-send"></i>Submit Request</button>
+    </div>
+  </form>
+</section>

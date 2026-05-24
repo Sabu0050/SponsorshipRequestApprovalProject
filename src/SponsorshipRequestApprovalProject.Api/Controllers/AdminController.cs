@@ -1,22 +1,278 @@
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using SponsorshipRequestApprovalProject.Api.Contracts.Admin;
 using SponsorshipRequestApprovalProject.Application.Common.Identity;
-using SponsorshipRequestApprovalProject.Application.Features.Admin.DTOs;
-using SponsorshipRequestApprovalProject.Application.Features.Admin.Queries.GetRoles;
+using SponsorshipRequestApprovalProject.Infrastructure.Identity;
 
 namespace SponsorshipRequestApprovalProject.Api.Controllers;
 
 [ApiController]
 [Authorize(Roles = ApplicationRoles.SystemAdmin)]
 [Route("api/admin")]
-public class AdminController(ISender sender) : ControllerBase
+public class AdminController(RoleManager<IdentityRole> roleManager) : ControllerBase
 {
+    private readonly RoleManager<IdentityRole> _roleManager = roleManager;
+
     [HttpGet("roles")]
-    public async Task<ActionResult<IReadOnlyCollection<RoleDto>>> GetRoles(
+    public async Task<ActionResult<IReadOnlyCollection<object>>> GetRoles(
         CancellationToken cancellationToken)
     {
-        var roles = await sender.Send(new GetRolesQuery(), cancellationToken);
-        return Ok(roles);
+        var roles = await _roleManager.Roles
+            .OrderBy(role => role.Name)
+            .ToListAsync(cancellationToken);
+
+        var result = new List<object>();
+        foreach (var role in roles)
+        {
+            var claims = await _roleManager.GetClaimsAsync(role);
+            result.Add(new
+            {
+                role.Name,
+                CanRequestorAccess = HasRequestorAuthority(claims),
+                CanApproveManagerStage = HasManagerAuthority(claims),
+                CanApproveFinanceStage = HasFinanceAuthority(claims)
+            });
+        }
+
+        return Ok(result);
+    }
+
+    [HttpPost("roles")]
+    public async Task<ActionResult<object>> CreateRole(
+        CreateRoleRequest request)
+    {
+        var name = request.Name.Trim();
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return BadRequest("Role name is required.");
+        }
+
+        if (await _roleManager.RoleExistsAsync(name))
+        {
+            return Conflict($"Role '{name}' already exists.");
+        }
+
+        var role = new IdentityRole(name);
+        var result = await _roleManager.CreateAsync(role);
+        if (!result.Succeeded)
+        {
+            return BadRequest(result.Errors.Select(error => error.Description));
+        }
+
+        await ApplyRoleAuthorityClaims(role, request.CanRequestorAccess, request.CanApproveManagerStage, request.CanApproveFinanceStage);
+
+        return Ok(new { Name = name });
+    }
+
+    [HttpPut("roles/{name}")]
+    public async Task<ActionResult<object>> UpdateRoleAuthorities(
+        string name,
+        UpdateRoleAuthoritiesRequest request)
+    {
+        var role = await _roleManager.FindByNameAsync(name);
+        if (role is null)
+        {
+            return NotFound();
+        }
+
+        await ApplyRoleAuthorityClaims(role, request.CanRequestorAccess, request.CanApproveManagerStage, request.CanApproveFinanceStage);
+        return Ok(new { role.Name });
+    }
+
+    [HttpGet("users")]
+    public async Task<ActionResult<IReadOnlyCollection<object>>> GetUsers(
+        [FromServices] UserManager<ApplicationUser> userManager,
+        CancellationToken cancellationToken)
+    {
+        var users = await userManager.Users
+            .OrderBy(user => user.Email)
+            .ToListAsync(cancellationToken);
+
+        var result = new List<object>();
+        foreach (var user in users)
+        {
+            var roles = await userManager.GetRolesAsync(user);
+            var roleName = roles.FirstOrDefault() ?? string.Empty;
+            var roleEntity = string.IsNullOrWhiteSpace(roleName) ? null : await _roleManager.FindByNameAsync(roleName);
+            var roleClaims = roleEntity is null ? [] : await _roleManager.GetClaimsAsync(roleEntity);
+            result.Add(new
+            {
+                user.Id,
+                user.Email,
+                user.FirstName,
+                user.LastName,
+                user.Department,
+                Role = roleName,
+                CanRequestorAccess = HasRequestorAuthority(roleClaims),
+                CanApproveManagerStage = HasManagerAuthority(roleClaims),
+                CanApproveFinanceStage = HasFinanceAuthority(roleClaims)
+            });
+        }
+
+        return Ok(result);
+    }
+
+    [HttpPost("users")]
+    public async Task<ActionResult<object>> CreateUser(
+        CreateAdminUserRequest request,
+        [FromServices] UserManager<ApplicationUser> userManager)
+    {
+        if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+        {
+            return BadRequest("Email and password are required.");
+        }
+
+        if (!await _roleManager.RoleExistsAsync(request.Role))
+        {
+            return BadRequest($"Role '{request.Role}' does not exist.");
+        }
+
+        var existing = await userManager.FindByEmailAsync(request.Email);
+        if (existing is not null)
+        {
+            return Conflict("A user with this email already exists.");
+        }
+
+        var user = new ApplicationUser
+        {
+            UserName = request.Email,
+            Email = request.Email,
+            FirstName = request.FirstName.Trim(),
+            LastName = request.LastName.Trim(),
+            Department = request.Department?.Trim(),
+            IsActive = true
+        };
+
+        var createResult = await userManager.CreateAsync(user, request.Password);
+        if (!createResult.Succeeded)
+        {
+            return BadRequest(createResult.Errors.Select(error => error.Description));
+        }
+
+        await userManager.AddToRoleAsync(user, request.Role);
+
+        return Ok(new { user.Id, user.Email, Role = request.Role });
+    }
+
+    [HttpPut("users/{id}")]
+    public async Task<ActionResult<object>> UpdateUserAuthorities(
+        string id,
+        UpdateUserAuthoritiesRequest request,
+        [FromServices] UserManager<ApplicationUser> userManager)
+    {
+        var user = await userManager.FindByIdAsync(id);
+        if (user is null)
+        {
+            return NotFound();
+        }
+
+        if (!await _roleManager.RoleExistsAsync(request.Role))
+        {
+            return BadRequest($"Role '{request.Role}' does not exist.");
+        }
+
+        user.FirstName = request.FirstName.Trim();
+        user.LastName = request.LastName.Trim();
+        user.Department = request.Department?.Trim();
+        var userUpdateResult = await userManager.UpdateAsync(user);
+        if (!userUpdateResult.Succeeded)
+        {
+            return BadRequest(userUpdateResult.Errors.Select(error => error.Description));
+        }
+
+        var existingRoles = await userManager.GetRolesAsync(user);
+        if (existingRoles.Count > 0)
+        {
+            await userManager.RemoveFromRolesAsync(user, existingRoles);
+        }
+
+        await userManager.AddToRoleAsync(user, request.Role);
+
+        return Ok(new { user.Id, user.Email, Role = request.Role });
+    }
+
+    private async Task ApplyRoleAuthorityClaims(
+        IdentityRole role,
+        bool canRequestorAccess,
+        bool canApproveManagerStage,
+        bool canApproveFinanceStage)
+    {
+        var existingClaims = await _roleManager.GetClaimsAsync(role);
+        var authorityClaims = existingClaims.Where(c =>
+            c.Type == ApprovalStages.ClaimType
+            || c.Type == ApprovalStages.AccessClaimType).ToArray();
+        if (authorityClaims.Length > 0)
+        {
+            foreach (var claim in authorityClaims)
+            {
+                var removeResult = await _roleManager.RemoveClaimAsync(role, claim);
+                if (!removeResult.Succeeded)
+                {
+                    throw new InvalidOperationException(string.Join("; ", removeResult.Errors.Select(error => error.Description)));
+                }
+            }
+        }
+
+        if (canRequestorAccess)
+        {
+            var addRequestorResult = await _roleManager.AddClaimAsync(role, new System.Security.Claims.Claim(ApprovalStages.AccessClaimType, ApprovalStages.Requestor));
+            if (!addRequestorResult.Succeeded)
+            {
+                throw new InvalidOperationException(string.Join("; ", addRequestorResult.Errors.Select(error => error.Description)));
+            }
+        }
+
+        if (canApproveManagerStage)
+        {
+            var addManagerResult = await _roleManager.AddClaimAsync(role, new System.Security.Claims.Claim(ApprovalStages.ClaimType, ApprovalStages.Manager));
+            if (!addManagerResult.Succeeded)
+            {
+                throw new InvalidOperationException(string.Join("; ", addManagerResult.Errors.Select(error => error.Description)));
+            }
+        }
+
+        if (canApproveFinanceStage)
+        {
+            var addFinanceResult = await _roleManager.AddClaimAsync(role, new System.Security.Claims.Claim(ApprovalStages.ClaimType, ApprovalStages.Finance));
+            if (!addFinanceResult.Succeeded)
+            {
+                throw new InvalidOperationException(string.Join("; ", addFinanceResult.Errors.Select(error => error.Description)));
+            }
+        }
+    }
+
+    private static bool HasRequestorAuthority(IEnumerable<System.Security.Claims.Claim> claims)
+    {
+        return claims.Any(claim =>
+        {
+            var type = claim.Type?.Trim().ToLowerInvariant() ?? string.Empty;
+            var value = claim.Value?.Trim().ToLowerInvariant() ?? string.Empty;
+            var isAuthorityType = type.Contains("access") || type.Contains("approval") || type.Contains("claim");
+            return isAuthorityType && (value == "requestoraccess" || value == "requestor" || value.Contains("requestor"));
+        });
+    }
+
+    private static bool HasManagerAuthority(IEnumerable<System.Security.Claims.Claim> claims)
+    {
+        return claims.Any(claim =>
+        {
+            var type = claim.Type?.Trim().ToLowerInvariant() ?? string.Empty;
+            var value = claim.Value?.Trim().ToLowerInvariant() ?? string.Empty;
+            var isAuthorityType = type.Contains("approval") || type.Contains("access") || type.Contains("claim");
+            return isAuthorityType && (value == "managerapproval" || value == "manager" || value.Contains("manager"));
+        });
+    }
+
+    private static bool HasFinanceAuthority(IEnumerable<System.Security.Claims.Claim> claims)
+    {
+        return claims.Any(claim =>
+        {
+            var type = claim.Type?.Trim().ToLowerInvariant() ?? string.Empty;
+            var value = claim.Value?.Trim().ToLowerInvariant() ?? string.Empty;
+            var isAuthorityType = type.Contains("approval") || type.Contains("access") || type.Contains("claim");
+            return isAuthorityType && (value == "financeapproval" || value == "finance" || value.Contains("finance"));
+        });
     }
 }

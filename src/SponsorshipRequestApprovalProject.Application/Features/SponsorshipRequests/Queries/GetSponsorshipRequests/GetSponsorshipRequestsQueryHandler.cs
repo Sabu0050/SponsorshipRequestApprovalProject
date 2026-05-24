@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using SponsorshipRequestApprovalProject.Application.Common.CQRS;
-using SponsorshipRequestApprovalProject.Application.Common.Identity;
 using SponsorshipRequestApprovalProject.Application.Common.Interfaces;
 using SponsorshipRequestApprovalProject.Application.Common.Models;
 using SponsorshipRequestApprovalProject.Application.Features.SponsorshipRequests.DTOs;
@@ -28,7 +27,13 @@ public class GetSponsorshipRequestsQueryHandler(IApplicationDbContext dbContext)
             query = query.Where(sponsorshipRequest => sponsorshipRequest.Status == request.Status.Value);
         }
 
-        query = ApplyRoleFilter(query, request.CurrentUserId, request.CurrentUserRole);
+        query = ApplyUserScopedFilter(
+            query,
+            request.CurrentUserId,
+            request.Status,
+            request.IsSystemAdmin,
+            request.HasManagerApprovalAuthority,
+            request.HasFinanceApprovalAuthority);
 
         var totalCount = await query.CountAsync(cancellationToken);
 
@@ -61,28 +66,49 @@ public class GetSponsorshipRequestsQueryHandler(IApplicationDbContext dbContext)
             totalCount);
     }
 
-    private static IQueryable<SponsorshipRequest> ApplyRoleFilter(
+    private static IQueryable<SponsorshipRequest> ApplyUserScopedFilter(
         IQueryable<SponsorshipRequest> query,
         string? currentUserId,
-        string? currentUserRole)
+        SponsorshipRequestStatus? requestedStatus,
+        bool isSystemAdmin,
+        bool hasManagerApprovalAuthority,
+        bool hasFinanceApprovalAuthority)
     {
-        return currentUserRole switch
+        if (isSystemAdmin)
         {
-            ApplicationRoles.Requestor when !string.IsNullOrWhiteSpace(currentUserId) =>
-                query.Where(request => request.RequesterId == currentUserId),
+            return query;
+        }
 
-            ApplicationRoles.Manager when !string.IsNullOrWhiteSpace(currentUserId) =>
-                query.Where(request =>
-                    request.Status == SponsorshipRequestStatus.PendingManagerApproval
-                    && request.CurrentApproverId == currentUserId),
+        if (string.IsNullOrWhiteSpace(currentUserId))
+        {
+            return query.Where(_ => false);
+        }
 
-            ApplicationRoles.FinanceAdmin when !string.IsNullOrWhiteSpace(currentUserId) =>
-                query.Where(request =>
-                    request.Status == SponsorshipRequestStatus.PendingFinanceReview
-                    && (request.CurrentApproverId == currentUserId || request.CurrentApproverId == null)),
+        if (requestedStatus == SponsorshipRequestStatus.PendingManagerApproval && hasManagerApprovalAuthority)
+        {
+            return query.Where(request =>
+                request.Status == SponsorshipRequestStatus.PendingManagerApproval
+                && request.RequesterId != currentUserId
+                && (string.IsNullOrWhiteSpace(request.CurrentApproverId) || request.CurrentApproverId == currentUserId));
+        }
 
-            ApplicationRoles.SystemAdmin => query,
-            _ => query
-        };
+        if (requestedStatus == SponsorshipRequestStatus.PendingFinanceReview && hasFinanceApprovalAuthority)
+        {
+            return query.Where(request =>
+                request.Status == SponsorshipRequestStatus.PendingFinanceReview
+                && request.RequesterId != currentUserId
+                && (string.IsNullOrWhiteSpace(request.CurrentApproverId) || request.CurrentApproverId == currentUserId));
+        }
+
+        // Personal decision report scope: only show items finalized by the current user.
+        if (requestedStatus is SponsorshipRequestStatus.Approved or SponsorshipRequestStatus.Rejected)
+        {
+            return query.Where(request =>
+                request.Status == requestedStatus
+                && request.FinalDecisionById == currentUserId);
+        }
+
+        // Default user scope: requestors and non-admin users see only their own requests.
+        return query.Where(request => request.RequesterId == currentUserId);
     }
 }

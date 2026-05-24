@@ -10,13 +10,28 @@ public class AuthorizeOperationFilter : IOperationFilter
     {
         var endpointMetadata = context.ApiDescription.ActionDescriptor.EndpointMetadata;
 
-        if (endpointMetadata.OfType<IAllowAnonymous>().Any())
+        var hasAllowAnonymousOnEndpoint = endpointMetadata.OfType<IAllowAnonymous>().Any();
+        var hasAllowAnonymousOnMethod = context.MethodInfo
+            .GetCustomAttributes(true)
+            .OfType<IAllowAnonymous>()
+            .Any();
+
+        if (hasAllowAnonymousOnEndpoint || hasAllowAnonymousOnMethod)
         {
             return;
         }
 
-        var authorizeAttributes = endpointMetadata.OfType<IAuthorizeData>().ToArray();
-        if (authorizeAttributes.Length == 0)
+        var hasAuthorizeOnEndpoint = endpointMetadata.OfType<IAuthorizeData>().Any();
+        var hasAuthorizeOnMethod = context.MethodInfo
+            .GetCustomAttributes(true)
+            .OfType<IAuthorizeData>()
+            .Any();
+        var hasAuthorizeOnController = context.MethodInfo.DeclaringType?
+            .GetCustomAttributes(true)
+            .OfType<IAuthorizeData>()
+            .Any() == true;
+
+        if (!hasAuthorizeOnEndpoint && !hasAuthorizeOnMethod && !hasAuthorizeOnController)
         {
             return;
         }

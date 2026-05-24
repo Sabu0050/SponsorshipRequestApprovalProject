@@ -1,0 +1,160 @@
+<section class="page">
+  <h2>All Sponsorship Requests</h2>
+  <p class="muted">Manage and monitor enterprise sponsorship lifecycle and audit logs.</p>
+  @if (adminMessage) {
+    <p class="admin-msg">{{ adminMessage }}</p>
+  }
+
+  <div class="cards admin-cards">
+    <article><div class="summary-head"><h4>Total Requests</h4><i class="pi pi-briefcase"></i></div><p>{{ summary.total }}</p></article>
+    <article><div class="summary-head"><h4>Pending Approval</h4><i class="pi pi-clock"></i></div><p>{{ pendingApprovalCount }}</p></article>
+    <article><div class="summary-head"><h4>Approved</h4><i class="pi pi-check-circle"></i></div><p>{{ summary.approved }}</p></article>
+    <article><div class="summary-head"><h4>Active Types</h4><i class="pi pi-cog"></i></div><p>{{ activeTypesCount }}</p></article>
+  </div>
+
+  <div class="admin-layout">
+    <div class="panel">
+      <h3>All Requests</h3>
+      <div class="filters">
+        <input [(ngModel)]="search" placeholder="Search request/title/requestor" />
+        <select [(ngModel)]="status">
+          <option value="">All Status</option>
+          <option>Draft</option>
+          <option>PendingManagerApproval</option>
+          <option>PendingFinanceReview</option>
+          <option>Approved</option>
+          <option>Rejected</option>
+          <option>Cancelled</option>
+        </select>
+        <button type="button" (click)="clearFilters()">Clear</button>
+      </div>
+      <table>
+        <thead><tr><th>Request</th><th>Type</th><th>Amount</th><th>Status</th><th>Updated</th><th>Action</th></tr></thead>
+        <tbody>
+          @for (item of filtered; track item.id) {
+            <tr [class.selected]="selectedRequest?.id === item.id">
+              <td>{{ item.title }}<br /><span class="muted">{{ item.requestNumber }}</span></td>
+              <td>{{ item.sponsorshipTypeName }}</td>
+              <td>${{ item.requestedAmount | number:'1.0-0' }}</td>
+              <td><app-status-badge [status]="item.status" /></td>
+              <td>{{ item.createdAt | date:'mediumDate' }}</td>
+              <td><button type="button" (click)="select(item)">History</button></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <h3>Sponsorship Types</h3>
+      <div class="inline-form">
+        <input [(ngModel)]="newTypeName" placeholder="New sponsorship type" />
+        <button type="button" class="primary" [disabled]="savingType || !canManageAdminConfig" (click)="addType()">Add</button>
+      </div>
+      <div class="chip-list">
+        @for (type of sponsorshipTypes; track type.id) {
+          <button type="button" class="chip" [class.inactive]="!type.isActive" [disabled]="savingType" (click)="toggleType(type)">
+            {{ type.name }} ({{ type.isActive ? 'Active' : 'Inactive' }})
+          </button>
+        }
+      </div>
+      <h4 class="roles-title">System Roles</h4>
+      <div class="inline-form">
+        <button type="button" class="primary" [disabled]="!canManageAdminConfig" (click)="openCreateRoleModal()">+ Add Role</button>
+      </div>
+      <div class="chip-list">
+        @for (role of visibleRoles; track role.name) {
+          <button type="button" class="chip role" [disabled]="!canManageAdminConfig" (click)="openEditRoleModal(role)">
+            {{ role.name }}
+          </button>
+        }
+      </div>
+      <h4 class="roles-title">Users</h4>
+      <div class="inline-form">
+        <button type="button" class="primary" (click)="openCreateUserModal()">+ Add User</button>
+      </div>
+      <table>
+        <thead><tr><th>Email</th><th>Role</th><th></th></tr></thead>
+        <tbody>
+          @for (user of users; track user.id) {
+            <tr>
+              <td>{{ user.email }}</td>
+              <td>{{ user.role }}</td>
+              <td><button type="button" (click)="openEditUserModal(user)">Edit</button></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel" #workflowHistorySection>
+    <h3>Workflow History</h3>
+    @if (selectedRequest) {
+      <p class="muted">Request: {{ selectedRequest.requestNumber }} - {{ selectedRequest.title }}</p>
+    }
+    <table>
+      <thead><tr><th>Action</th><th>From</th><th>To</th><th>By</th><th>Date</th></tr></thead>
+      <tbody>
+        @for (row of history; track row.id) {
+          <tr>
+            <td>{{ normalizeAction(row.action) }}</td>
+            <td>{{ row.fromStatus === null || row.fromStatus === undefined ? '-' : normalizeStatus(row.fromStatus) }}</td>
+            <td>{{ normalizeStatus(row.toStatus) }}</td>
+            <td>{{ row.performedByName }}</td>
+            <td>{{ row.performedAt | date:'short' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (showUserModal) {
+    <div class="modal-backdrop" (click)="closeUserModal()"></div>
+    <div class="modal">
+      <h3>{{ editingUserId ? 'Update User' : 'Add New User' }}</h3>
+      <div class="grid">
+        <label>Email</label>
+        <input [(ngModel)]="userForm.email" type="email" [readonly]="!!editingUserId" />
+        @if (!editingUserId) {
+          <label>Password</label>
+          <input [(ngModel)]="userForm.password" type="password" />
+        }
+        <label>First Name</label>
+        <input [(ngModel)]="userForm.firstName" />
+        <label>Last Name</label>
+        <input [(ngModel)]="userForm.lastName" />
+        <label>Department</label>
+        <input [(ngModel)]="userForm.department" />
+        <label>Role</label>
+        <select [(ngModel)]="userForm.role">
+          @for (role of roles; track role.name) {
+            <option [value]="role.name">{{ role.name }}</option>
+          }
+        </select>
+      </div>
+      <div class="actions centered">
+        <button type="button" (click)="closeUserModal()"><i class="pi pi-times"></i>Cancel</button>
+        <button type="button" class="primary" [disabled]="savingUser" (click)="saveUser()"><i class="pi pi-save"></i>{{ editingUserId ? 'Update' : 'Create User' }}</button>
+      </div>
+    </div>
+  }
+
+  @if (showRoleModal) {
+    <div class="modal-backdrop" (click)="closeRoleModal()"></div>
+    <div class="modal">
+      <h3>{{ editingRoleName ? 'Update Role Authority' : 'Add New Role' }}</h3>
+      <div class="grid">
+        <label>Role Name</label>
+        <input [(ngModel)]="roleForm.name" [readonly]="!!editingRoleName" (ngModelChange)="onRoleFormNameChanged($event)" />
+        <label class="check"><input type="checkbox" [(ngModel)]="roleForm.canRequestorAccess" /> Requestor Authority</label>
+        <label class="check"><input type="checkbox" [(ngModel)]="roleForm.canApproveManagerStage" /> Manager Approval Authority</label>
+        <label class="check"><input type="checkbox" [(ngModel)]="roleForm.canApproveFinanceStage" /> Finance Approval Authority</label>
+      </div>
+      <div class="actions centered">
+        <button type="button" (click)="closeRoleModal()"><i class="pi pi-times"></i>Cancel</button>
+        <button type="button" class="primary" [disabled]="savingRole" (click)="saveRole()"><i class="pi pi-shield"></i>{{ editingRoleName ? 'Update Role' : 'Create Role' }}</button>
+      </div>
+    </div>
+  }
+</section>

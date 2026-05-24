@@ -1,0 +1,13 @@
+<section class="page">
+  <h2>Sponsorship Types</h2>
+  <div class="panel">
+    <table>
+      <thead><tr><th>Name</th><th>Active</th></tr></thead>
+      <tbody>
+        @for (item of items; track item.id) {
+          <tr><td>{{ item.name }}</td><td>{{ item.isActive ? 'Yes' : 'No' }}</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

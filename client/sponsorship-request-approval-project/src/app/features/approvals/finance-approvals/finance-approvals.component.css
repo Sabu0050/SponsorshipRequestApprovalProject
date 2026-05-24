@@ -1,0 +1,34 @@
+.finance-cards article:nth-child(1) { border-left: 4px solid #3b82f6; }
+.finance-cards article:nth-child(2) { border-left: 4px solid #8b5cf6; }
+.finance-cards article:nth-child(3) { border-left: 4px solid #22c55e; }
+.summary-head { display: flex; align-items: center; justify-content: space-between; }
+.summary-head i { color: #64748b; font-size: .95rem; }
+
+.finance-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr);
+  gap: 12px;
+}
+
+.detail-panel p {
+  margin: 0 0 10px;
+}
+
+.detail-panel textarea {
+  margin-top: 8px;
+  min-height: 110px;
+}
+
+.action-stack {
+  margin-top: 10px;
+}
+
+tr.selected {
+  background: #f3f2ff;
+}
+
+@media (max-width: 1080px) {
+  .finance-layout {
+    grid-template-columns: 1fr;
+  }
+}

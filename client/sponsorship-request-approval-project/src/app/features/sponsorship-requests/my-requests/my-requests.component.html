@@ -1,0 +1,68 @@
+<section class="page">
+  <div class="header-row">
+    <div>
+      <h2>My Sponsorship Requests</h2>
+      <p class="muted">Track draft, pending, and finalized requests in one workspace.</p>
+    </div>
+    <button type="button" class="create-link" (click)="showCreate = !showCreate">
+      {{ showCreate ? 'Hide Request Form' : '+ New Request' }}
+    </button>
+  </div>
+
+  <div class="cards requestor-cards">
+    <article>
+      <div class="card-head"><h4>Draft</h4><i class="pi pi-file-edit"></i></div>
+      <p>{{ draftCount }}</p>
+    </article>
+    <article>
+      <div class="card-head"><h4>Pending Manager</h4><i class="pi pi-user-clock"></i></div>
+      <p>{{ pendingManagerCount }}</p>
+    </article>
+    <article>
+      <div class="card-head"><h4>Pending Finance</h4><i class="pi pi-wallet"></i></div>
+      <p>{{ pendingFinanceCount }}</p>
+    </article>
+    <article>
+      <div class="card-head"><h4>Approved</h4><i class="pi pi-check-circle"></i></div>
+      <p>{{ approvedCount }}</p>
+    </article>
+    <article>
+      <div class="card-head"><h4>Rejected</h4><i class="pi pi-times-circle"></i></div>
+      <p>{{ rejectedCount }}</p>
+    </article>
+    <article>
+      <div class="card-head"><h4>Cancelled</h4><i class="pi pi-ban"></i></div>
+      <p>{{ cancelledCount }}</p>
+    </article>
+  </div>
+
+  @if (showCreate) {
+    <div class="panel">
+      <h3>New Request Form</h3>
+      <app-request-create [embedded]="true" (saved)="load()" />
+    </div>
+  }
+
+  <div class="panel">
+    <h3>Recent Activities</h3>
+    <table>
+      <thead><tr><th>Request No</th><th>Title</th><th>Department</th><th>Event Date</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>
+        @for (item of items; track item.id) {
+          <tr>
+            <td>{{ item.requestNumber }}</td><td>{{ item.title }}</td><td>-</td><td>-</td><td>{{ item.requestedAmount }}</td>
+            <td><app-status-badge [status]="item.status" /></td>
+            <td class="actions">
+              <a [routerLink]="['/sponsorship-requests', item.id]">Detail</a>
+              @if (isStatus(item, 'Draft')) {
+                <a [routerLink]="['/sponsorship-requests', item.id, 'edit']">Edit</a>
+                <button type="button" (click)="submit(item)">Submit</button>
+              }
+              @if (isStatus(item, 'Draft') || isStatus(item, 'PendingManagerApproval')) { <button type="button" (click)="cancel(item)">Cancel</button> }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

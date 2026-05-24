@@ -6,13 +6,13 @@ export type SponsorshipRequestStatus =
   | 'Rejected'
   | 'Cancelled';
 
-export type WorkflowAction =
-  | 'Created'
-  | 'Submitted'
-  | 'ManagerApproved'
-  | 'FinanceApproved'
-  | 'Rejected'
-  | 'Cancelled';
+export interface PagedResult<T> {
+  items: T[];
+  pageNumber: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+}
 
 export interface SponsorshipRequestListItem {
   id: string;
@@ -24,27 +24,12 @@ export interface SponsorshipRequestListItem {
   requestedAmount: number;
   currencyCode: string;
   status: SponsorshipRequestStatus;
-  currentApproverId: string | null;
-  currentApproverName: string | null;
+  currentApproverId?: string;
+  currentApproverName?: string;
   createdAt: string;
-  submittedAt: string | null;
-  approvedAt: string | null;
-  rejectedAt: string | null;
-}
-
-export interface SponsorshipRequestDetail extends SponsorshipRequestListItem {
-  description: string;
-  sponsorshipTypeId: string;
-  requesterId: string;
-  requesterEmail: string;
-  eventDate: string | null;
-  sponsorshipStartDate: string | null;
-  sponsorshipEndDate: string | null;
-  updatedAt: string | null;
-  finalDecisionById: string | null;
-  finalDecisionByName: string | null;
-  decisionNotes: string | null;
-  attachments: RequestAttachment[];
+  submittedAt?: string;
+  approvedAt?: string;
+  rejectedAt?: string;
 }
 
 export interface RequestAttachment {
@@ -56,49 +41,59 @@ export interface RequestAttachment {
   uploadedAt: string;
 }
 
+export interface SponsorshipRequestDetail extends SponsorshipRequestListItem {
+  description: string;
+  sponsorshipTypeId: string;
+  requesterId: string;
+  requesterEmail: string;
+  eventDate?: string;
+  sponsorshipStartDate?: string;
+  sponsorshipEndDate?: string;
+  updatedAt?: string;
+  finalDecisionById?: string;
+  finalDecisionByName?: string;
+  decisionNotes?: string;
+  attachments: RequestAttachment[];
+}
+
 export interface WorkflowHistory {
   id: string;
   sponsorshipRequestId: string;
-  action: WorkflowAction;
-  fromStatus: SponsorshipRequestStatus | null;
+  action: string;
+  fromStatus?: SponsorshipRequestStatus;
   toStatus: SponsorshipRequestStatus;
   performedById: string;
   performedByName: string;
-  assignedToId: string | null;
-  assignedToName: string | null;
-  remarks: string | null;
+  assignedToId?: string;
+  assignedToName?: string;
+  remarks?: string;
   performedAt: string;
 }
 
-export interface SponsorshipRequestWorkflowResult {
-  sponsorshipRequestId: string;
+export interface DashboardSummary {
+  total: number;
+  draft: number;
+  pendingManagerApproval: number;
+  pendingFinanceReview: number;
+  approved: number;
+  rejected: number;
+  cancelled: number;
+}
+
+export interface SaveSponsorshipRequestPayload {
+  title: string;
+  description: string;
+  sponsorshipTypeId: string;
+  sponsorName: string;
+  requestedAmount: number;
+  currencyCode: string;
+  eventDate?: string | null;
+  sponsorshipStartDate?: string | null;
+  sponsorshipEndDate?: string | null;
+}
+
+export interface SaveSponsorshipRequestResult {
+  id: string;
+  requestNumber: string;
   status: SponsorshipRequestStatus;
-  action: WorkflowAction;
-  performedAt: string;
-}
-
-export interface SubmitSponsorshipRequestPayload {
-  assignedManagerId: string | null;
-  assignedManagerName: string | null;
-  comments: string | null;
-}
-
-export interface ManagerApprovalPayload {
-  assignedFinanceReviewerId: string | null;
-  assignedFinanceReviewerName: string | null;
-  comments: string | null;
-}
-
-export interface FinanceApprovalPayload {
-  comments: string | null;
-}
-
-export interface RejectSponsorshipRequestPayload {
-  expectedCurrentStatus: SponsorshipRequestStatus;
-  comments: string;
-}
-
-export interface CancelSponsorshipRequestPayload {
-  expectedCurrentStatus: SponsorshipRequestStatus;
-  comments: string | null;
 }

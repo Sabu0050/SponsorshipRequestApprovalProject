@@ -11,7 +11,11 @@ public class JwtTokenService(IOptions<JwtOptions> jwtOptions) : IJwtTokenService
 {
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
-    public string GenerateToken(string userId, string? email, IEnumerable<string> roles)
+    public string GenerateToken(
+        string userId,
+        string? email,
+        IEnumerable<string> roles,
+        IEnumerable<Claim>? additionalClaims = null)
     {
         var claims = new List<Claim>
         {
@@ -27,6 +31,10 @@ public class JwtTokenService(IOptions<JwtOptions> jwtOptions) : IJwtTokenService
         }
 
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+        if (additionalClaims is not null)
+        {
+            claims.AddRange(additionalClaims);
+        }
 
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SigningKey));
         var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);

@@ -3,6 +3,7 @@ using SponsorshipRequestApprovalProject.Api.Swagger;
 using SponsorshipRequestApprovalProject.Application;
 using SponsorshipRequestApprovalProject.Infrastructure;
 using SponsorshipRequestApprovalProject.Infrastructure.Identity;
+using SponsorshipRequestApprovalProject.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 const string CorsPolicyName = "ClientCors";
@@ -31,14 +32,23 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1"
     });
 
+    // Stable bearer setup for Swagger UI authorize flow
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.OpenApiSecurityScheme
     {
         Name = "Authorization",
         Type = Microsoft.OpenApi.SecuritySchemeType.Http,
-        Scheme = "Bearer",
+        Scheme = "bearer",
         BearerFormat = "JWT",
         In = Microsoft.OpenApi.ParameterLocation.Header,
-        Description = "Enter a valid JWT bearer token."
+        Description = "Enter JWT access token only. Do not include the word Bearer."
+    });
+
+    options.AddSecurityRequirement(_ => new Microsoft.OpenApi.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer", null, null),
+            []
+        }
     });
 
     options.OperationFilter<AuthorizeOperationFilter>();
@@ -66,6 +76,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers().RequireCors(CorsPolicyName);
 
-await app.Services.SeedIdentityAsync();
+/*await app.Services.SeedIdentityAsync();
+await app.Services.SeedSponsorshipTypesAsync();*/
 
 app.Run();

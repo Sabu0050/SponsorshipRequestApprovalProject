@@ -3,10 +3,18 @@ export interface LoginRequest {
   password: string;
 }
 
-export interface LoginResult {
+export interface LoginOption {
+  role: string;
+  email: string;
+}
+
+export interface LoginResponse {
   accessToken: string;
   expiresAt: string;
   userId: string;
   email: string;
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
   roles: string[];
 }
