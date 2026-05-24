@@ -20,7 +20,9 @@
     <form [formGroup]="form" (ngSubmit)="submit()" class="grid">
       <label for="email">Email</label>
       <input pInputText id="email" type="email" formControlName="email" />
-      @if (form.controls.email.touched && form.controls.email.invalid) { <small>Email is required.</small> }
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <small>{{ form.controls.email.errors?.['required'] ? 'Email is required.' : 'Enter a valid email address.' }}</small>
+      }
 
       <label for="password">Password</label>
       <p-password inputId="password" formControlName="password" [feedback]="false" [toggleMask]="false" />

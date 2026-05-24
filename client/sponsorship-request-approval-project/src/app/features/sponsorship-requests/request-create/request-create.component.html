@@ -9,6 +9,7 @@
     <div class="field full">
       <label>Request Title</label>
       <input formControlName="title" />
+      @if (isInvalid('title')) { <small class="error-text">Request title is required.</small> }
     </div>
     <div class="field">
       <label>Requestor</label>
@@ -17,6 +18,7 @@
     <div class="field">
       <label>Department</label>
       <input formControlName="department" />
+      @if (isInvalid('department')) { <small class="error-text">Department is required.</small> }
     </div>
 
     <div class="section-title">Sponsorship Details</div>
@@ -28,24 +30,30 @@
           <option [value]="type.id">{{ type.name }}</option>
         }
       </select>
+      @if (isInvalid('sponsorshipTypeId')) { <small class="error-text">Sponsorship type is required.</small> }
     </div>
     <div class="field">
       <label>Event Date</label>
-      <input type="date" formControlName="eventDate" />
+      <input type="date" formControlName="eventDate" [min]="minEventDate" [max]="maxEventDate" />
+      @if (hasError('eventDate', 'required')) { <small class="error-text">Event date is required.</small> }
+      @if (hasError('eventDate', 'dateOutOfRange')) { <small class="error-text">Event date must be from tomorrow up to 1.5 years from today.</small> }
     </div>
     <div class="field full">
       <label>Event / Organization Name</label>
       <input formControlName="eventOrganizationName" />
+      @if (isInvalid('eventOrganizationName')) { <small class="error-text">Event / organization name is required.</small> }
     </div>
     <div class="field full">
       <label>Requested Amount</label>
       <input type="number" formControlName="requestedAmount" />
+      @if (isInvalid('requestedAmount')) { <small class="error-text">Requested amount must be greater than 0.</small> }
     </div>
 
     <div class="section-title">Business Justification</div>
     <div class="field full">
       <label>Purpose / Justification</label>
       <textarea formControlName="purpose"></textarea>
+      @if (isInvalid('purpose')) { <small class="error-text">Purpose / justification is required.</small> }
     </div>
     <div class="field full">
       <label>Expected Business Benefit</label>
@@ -57,8 +65,8 @@
     </div>
 
     <div class="actions centered">
-      <button type="button" [disabled]="saving" (click)="save(false)"><i class="pi pi-file"></i>Save as Draft</button>
-      <button type="button" class="primary" [disabled]="saving" (click)="save(true)"><i class="pi pi-send"></i>Submit Request</button>
+      <button type="button" [disabled]="saving || form.invalid" (click)="save(false)"><i class="pi pi-file"></i>Save as Draft</button>
+      <button type="button" class="primary" [disabled]="saving || form.invalid" (click)="save(true)"><i class="pi pi-send"></i>Submit Request</button>
     </div>
   </form>
 </section>

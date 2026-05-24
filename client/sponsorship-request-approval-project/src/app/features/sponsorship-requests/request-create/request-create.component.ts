@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { of, switchMap } from 'rxjs';
 import { SponsorshipType } from '../../../core/models/sponsorship-type.models';
@@ -46,6 +46,11 @@ import { AuthService } from '../../../core/services/auth.service';
       grid-column: 1 / -1;
     }
 
+    .error-text {
+      color: #dc2626;
+      font-size: .82rem;
+    }
+
     @media (max-width: 900px) {
       .embedded-form {
         grid-template-columns: 1fr;
@@ -63,10 +68,12 @@ export class RequestCreateComponent implements OnInit {
   sponsorshipTypes: SponsorshipType[] = [];
   message = '';
   saving = false;
+  readonly minEventDate = this.formatDateForInput(this.getTomorrow());
+  readonly maxEventDate = this.formatDateForInput(this.getEighteenMonthsFromToday());
   readonly form = this.fb.group({
     title: ['', Validators.required], requestorName: ['', Validators.required], department: ['', Validators.required],
-    sponsorshipTypeId: ['', Validators.required], eventOrganizationName: ['', Validators.required], eventDate: ['', Validators.required],
-    requestedAmount: [0, Validators.required], purpose: ['', Validators.required], expectedBusinessBenefit: [''], remarks: ['']
+    sponsorshipTypeId: ['', Validators.required], eventOrganizationName: ['', Validators.required], eventDate: ['', [Validators.required, this.eventDateRangeValidator()]],
+    requestedAmount: [0, [Validators.required, Validators.min(1)]], purpose: ['', Validators.required], expectedBusinessBenefit: [''], remarks: ['']
   });
 
   constructor(
@@ -172,5 +179,67 @@ export class RequestCreateComponent implements OnInit {
       `Expected Business Benefit: ${formValue.expectedBusinessBenefit ?? ''}`,
       `Remarks: ${formValue.remarks ?? ''}`
     ].join('\n');
+  }
+
+  isInvalid(controlName: keyof typeof this.form.controls): boolean {
+    const control = this.form.controls[controlName];
+    return !!(control.touched && control.invalid);
+  }
+
+  hasError(controlName: keyof typeof this.form.controls, errorName: string): boolean {
+    const control = this.form.controls[controlName];
+    return !!(control.touched && control.hasError(errorName));
+  }
+
+  private eventDateRangeValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value as string | null | undefined;
+      if (!value) {
+        return null;
+      }
+
+      const selectedDate = new Date(value);
+      if (Number.isNaN(selectedDate.getTime())) {
+        return { invalidDate: true };
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const minDate = new Date(today);
+      minDate.setDate(minDate.getDate() + 1);
+
+      const maxDate = new Date(today);
+      maxDate.setMonth(maxDate.getMonth() + 18);
+
+      if (selectedDate < minDate || selectedDate > maxDate) {
+        return { dateOutOfRange: true };
+      }
+
+      return null;
+    };
+  }
+
+  private getTomorrow(): Date {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow;
+  }
+
+  private getEighteenMonthsFromToday(): Date {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const maxDate = new Date(today);
+    maxDate.setMonth(maxDate.getMonth() + 18);
+    return maxDate;
+  }
+
+  private formatDateForInput(date: Date): string {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, '0');
+    const day = `${date.getDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }

@@ -43,22 +43,36 @@ public class AdminController(RoleManager<IdentityRole> roleManager) : Controller
     public async Task<ActionResult<object>> CreateRole(
         CreateRoleRequest request)
     {
-        var name = request.Name.Trim();
+        var name = request.Name?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(name))
         {
-            return BadRequest("Role name is required.");
+            return ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
+            {
+                { nameof(request.Name), ["Role name is required."] }
+            })
+            {
+                Title = "Please correct the highlighted fields and try again."
+            });
         }
 
         if (await _roleManager.RoleExistsAsync(name))
         {
-            return Conflict($"Role '{name}' already exists.");
+            return Conflict(new
+            {
+                title = "Role already exists.",
+                detail = $"Role '{name}' already exists."
+            });
         }
 
         var role = new IdentityRole(name);
         var result = await _roleManager.CreateAsync(role);
         if (!result.Succeeded)
         {
-            return BadRequest(result.Errors.Select(error => error.Description));
+            return BadRequest(new
+            {
+                title = "Unable to create role.",
+                errors = result.Errors.Select(error => error.Description).ToArray()
+            });
         }
 
         await ApplyRoleAuthorityClaims(role, request.CanRequestorAccess, request.CanApproveManagerStage, request.CanApproveFinanceStage);
@@ -74,7 +88,11 @@ public class AdminController(RoleManager<IdentityRole> roleManager) : Controller
         var role = await _roleManager.FindByNameAsync(name);
         if (role is null)
         {
-            return NotFound();
+            return NotFound(new
+            {
+                title = "Role not found.",
+                detail = $"Role '{name}' was not found."
+            });
         }
 
         await ApplyRoleAuthorityClaims(role, request.CanRequestorAccess, request.CanApproveManagerStage, request.CanApproveFinanceStage);
@@ -121,18 +139,33 @@ public class AdminController(RoleManager<IdentityRole> roleManager) : Controller
     {
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
         {
-            return BadRequest("Email and password are required.");
+            return ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
+            {
+                { nameof(request.Email), ["Email is required."] },
+                { nameof(request.Password), ["Password is required."] }
+            })
+            {
+                Title = "Please correct the highlighted fields and try again."
+            });
         }
 
         if (!await _roleManager.RoleExistsAsync(request.Role))
         {
-            return BadRequest($"Role '{request.Role}' does not exist.");
+            return BadRequest(new
+            {
+                title = "Invalid role.",
+                detail = $"Role '{request.Role}' does not exist."
+            });
         }
 
         var existing = await userManager.FindByEmailAsync(request.Email);
         if (existing is not null)
         {
-            return Conflict("A user with this email already exists.");
+            return Conflict(new
+            {
+                title = "User already exists.",
+                detail = "A user with this email already exists."
+            });
         }
 
         var user = new ApplicationUser
@@ -148,7 +181,11 @@ public class AdminController(RoleManager<IdentityRole> roleManager) : Controller
         var createResult = await userManager.CreateAsync(user, request.Password);
         if (!createResult.Succeeded)
         {
-            return BadRequest(createResult.Errors.Select(error => error.Description));
+            return BadRequest(new
+            {
+                title = "Unable to create user.",
+                errors = createResult.Errors.Select(error => error.Description).ToArray()
+            });
         }
 
         await userManager.AddToRoleAsync(user, request.Role);
@@ -165,12 +202,20 @@ public class AdminController(RoleManager<IdentityRole> roleManager) : Controller
         var user = await userManager.FindByIdAsync(id);
         if (user is null)
         {
-            return NotFound();
+            return NotFound(new
+            {
+                title = "User not found.",
+                detail = "The selected user could not be found."
+            });
         }
 
         if (!await _roleManager.RoleExistsAsync(request.Role))
         {
-            return BadRequest($"Role '{request.Role}' does not exist.");
+            return BadRequest(new
+            {
+                title = "Invalid role.",
+                detail = $"Role '{request.Role}' does not exist."
+            });
         }
 
         user.FirstName = request.FirstName.Trim();
@@ -179,7 +224,11 @@ public class AdminController(RoleManager<IdentityRole> roleManager) : Controller
         var userUpdateResult = await userManager.UpdateAsync(user);
         if (!userUpdateResult.Succeeded)
         {
-            return BadRequest(userUpdateResult.Errors.Select(error => error.Description));
+            return BadRequest(new
+            {
+                title = "Unable to update user.",
+                errors = userUpdateResult.Errors.Select(error => error.Description).ToArray()
+            });
         }
 
         var existingRoles = await userManager.GetRolesAsync(user);

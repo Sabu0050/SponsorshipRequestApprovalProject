@@ -24,9 +24,6 @@ public class SponsorshipTypesController(
         [FromQuery] bool? isActive = null,
         CancellationToken cancellationToken = default)
     {
-        var authHeader = Request.Headers.Authorization.ToString();
-
-        Console.WriteLine($"Authorization Header: {authHeader}");
         var result = await sender.Send(new GetSponsorshipTypesQuery(isActive), cancellationToken);
         return Ok(result);
     }
@@ -49,14 +46,24 @@ public class SponsorshipTypesController(
         var name = request.Name.Trim();
         if (string.IsNullOrWhiteSpace(name))
         {
-            return BadRequest("Name is required.");
+            return ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
+            {
+                { nameof(request.Name), ["Sponsorship type name is required."] }
+            })
+            {
+                Title = "Please correct the highlighted fields and try again."
+            });
         }
 
         var exists = await dbContext.SponsorshipTypes
             .AnyAsync(type => type.Name.ToLower() == name.ToLower(), cancellationToken);
         if (exists)
         {
-            return Conflict($"Sponsorship type '{name}' already exists.");
+            return Conflict(new
+            {
+                title = "Sponsorship type already exists.",
+                detail = $"A sponsorship type with name '{name}' already exists."
+            });
         }
 
         var entity = new SponsorshipType
@@ -90,20 +97,34 @@ public class SponsorshipTypesController(
             .FirstOrDefaultAsync(type => type.Id == id, cancellationToken);
         if (entity is null)
         {
-            return NotFound();
+            return NotFound(new
+            {
+                title = "Sponsorship type not found.",
+                detail = "The requested sponsorship type could not be located."
+            });
         }
 
         var name = request.Name.Trim();
         if (string.IsNullOrWhiteSpace(name))
         {
-            return BadRequest("Name is required.");
+            return ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
+            {
+                { nameof(request.Name), ["Sponsorship type name is required."] }
+            })
+            {
+                Title = "Please correct the highlighted fields and try again."
+            });
         }
 
         var duplicate = await dbContext.SponsorshipTypes
             .AnyAsync(type => type.Id != id && type.Name.ToLower() == name.ToLower(), cancellationToken);
         if (duplicate)
         {
-            return Conflict($"Sponsorship type '{name}' already exists.");
+            return Conflict(new
+            {
+                title = "Sponsorship type already exists.",
+                detail = $"A sponsorship type with name '{name}' already exists."
+            });
         }
 
         entity.Name = name;

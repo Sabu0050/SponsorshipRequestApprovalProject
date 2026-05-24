@@ -53,6 +53,7 @@
         <input [(ngModel)]="newTypeName" placeholder="New sponsorship type" />
         <button type="button" class="primary inline-add-btn" [disabled]="savingType || !canManageAdminConfig" (click)="addType()"><i class="pi pi-plus"></i>Add</button>
       </div>
+      @if (typeError) { <small class="error-text">{{ typeError }}</small> }
       <div class="chip-list">
         @for (type of sponsorshipTypes; track type.id) {
           <button type="button" class="chip" [class.inactive]="!type.isActive" [disabled]="savingType" (click)="toggleType(type)">
@@ -119,6 +120,7 @@
     <div class="modal-backdrop" (click)="closeUserModal()"></div>
     <div class="modal">
       <h3>{{ editingUserId ? 'Update User' : 'Add New User' }}</h3>
+      @if (userModalError) { <p class="error-text">{{ userModalError }}</p> }
       <div class="grid">
         <label>Email</label>
         <input [(ngModel)]="userForm.email" type="email" [readonly]="!!editingUserId" />
@@ -141,7 +143,7 @@
       </div>
       <div class="actions centered">
         <button type="button" (click)="closeUserModal()"><i class="pi pi-times"></i>Cancel</button>
-        <button type="button" class="primary" [disabled]="savingUser" (click)="saveUser()"><i class="pi pi-save"></i>{{ editingUserId ? 'Update' : 'Create User' }}</button>
+        <button type="button" class="primary" [disabled]="savingUser || !userForm.email.trim() || !userForm.firstName.trim() || !userForm.lastName.trim() || !userForm.role || (!editingUserId && !userForm.password.trim())" (click)="saveUser()"><i class="pi pi-save"></i>{{ editingUserId ? 'Update' : 'Create User' }}</button>
       </div>
     </div>
   }
@@ -150,6 +152,7 @@
     <div class="modal-backdrop" (click)="closeRoleModal()"></div>
     <div class="modal">
       <h3>{{ editingRoleName ? 'Update Role Authority' : 'Add New Role' }}</h3>
+      @if (roleModalError) { <p class="error-text">{{ roleModalError }}</p> }
       <div class="grid">
         <label>Role Name</label>
         <input [(ngModel)]="roleForm.name" [readonly]="!!editingRoleName" (ngModelChange)="onRoleFormNameChanged($event)" />
@@ -159,7 +162,7 @@
       </div>
       <div class="actions centered">
         <button type="button" (click)="closeRoleModal()"><i class="pi pi-times"></i>Cancel</button>
-        <button type="button" class="primary" [disabled]="savingRole" (click)="saveRole()"><i class="pi pi-shield"></i>{{ editingRoleName ? 'Update Role' : 'Create Role' }}</button>
+        <button type="button" class="primary" [disabled]="savingRole || !roleForm.name.trim()" (click)="saveRole()"><i class="pi pi-shield"></i>{{ editingRoleName ? 'Update Role' : 'Create Role' }}</button>
       </div>
     </div>
   }

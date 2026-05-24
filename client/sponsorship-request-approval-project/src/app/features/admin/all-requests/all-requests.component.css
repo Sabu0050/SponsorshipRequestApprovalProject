@@ -22,6 +22,14 @@
   font-weight: 600;
 }
 
+.error-text {
+  display: block;
+  margin: -2px 0 8px;
+  color: #dc2626;
+  font-size: .82rem;
+  font-weight: 600;
+}
+
 .admin-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr);

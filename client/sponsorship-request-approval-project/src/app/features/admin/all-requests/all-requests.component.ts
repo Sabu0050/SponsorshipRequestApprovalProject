@@ -71,6 +71,9 @@ export class AllRequestsComponent implements OnInit {
   savingRole = false;
   savingUser = false;
   adminMessage = '';
+  userModalError = '';
+  roleModalError = '';
+  typeError = '';
   search = '';
   status = '';
   constructor(
@@ -138,8 +141,12 @@ export class AllRequestsComponent implements OnInit {
 
     const name = this.newTypeName.trim();
     if (!name || this.savingType) {
+      if (!name) {
+        this.typeError = 'Sponsorship type name is required.';
+      }
       return;
     }
+    this.typeError = '';
 
     this.savingType = true;
     this.sponsorshipTypeService.create({ name, isActive: true }).subscribe({
@@ -185,6 +192,7 @@ export class AllRequestsComponent implements OnInit {
       canApproveManagerStage: false,
       canApproveFinanceStage: false
     };
+    this.roleModalError = '';
     this.showRoleModal = true;
   }
 
@@ -200,6 +208,7 @@ export class AllRequestsComponent implements OnInit {
         canApproveManagerStage: selected.canApproveManagerStage,
         canApproveFinanceStage: selected.canApproveFinanceStage
       };
+      this.roleModalError = '';
       this.onRoleFormNameChanged(this.roleForm.name);
       this.showRoleModal = true;
     });
@@ -219,6 +228,7 @@ export class AllRequestsComponent implements OnInit {
   closeRoleModal(): void {
     this.showRoleModal = false;
     this.savingRole = false;
+    this.roleModalError = '';
   }
 
   saveRole(): void {
@@ -229,8 +239,12 @@ export class AllRequestsComponent implements OnInit {
 
     const name = this.roleForm.name.trim();
     if (!name || this.savingRole) {
+      if (!name) {
+        this.roleModalError = 'Role name is required.';
+      }
       return;
     }
+    this.roleModalError = '';
 
     this.savingRole = true;
     if (this.editingRoleName) {
@@ -291,6 +305,7 @@ export class AllRequestsComponent implements OnInit {
       department: '',
       role: this.roles[0]?.name ?? ''
     };
+    this.userModalError = '';
     this.showUserModal = true;
   }
 
@@ -314,18 +329,32 @@ export class AllRequestsComponent implements OnInit {
       department: user.department ?? '',
       role: user.role
     };
+    this.userModalError = '';
     this.showUserModal = true;
   }
 
   closeUserModal(): void {
     this.showUserModal = false;
     this.savingUser = false;
+    this.userModalError = '';
   }
 
   saveUser(): void {
+    const email = this.userForm.email.trim();
+    const firstName = this.userForm.firstName.trim();
+    const lastName = this.userForm.lastName.trim();
     if (this.savingUser || !this.userForm.role) {
       return;
     }
+    if (!email || !firstName || !lastName) {
+      this.userModalError = 'Email, first name, last name, and role are required.';
+      return;
+    }
+    if (!this.editingUserId && !this.userForm.password.trim()) {
+      this.userModalError = 'Password is required for new users.';
+      return;
+    }
+    this.userModalError = '';
 
     this.savingUser = true;
 
