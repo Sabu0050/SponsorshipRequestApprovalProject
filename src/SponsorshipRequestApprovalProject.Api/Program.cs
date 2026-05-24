@@ -77,6 +77,6 @@ app.UseAuthorization();
 app.MapControllers().RequireCors(CorsPolicyName);
 
 /*await app.Services.SeedIdentityAsync();
-await app.Services.SeedSponsorshipTypesAsync();*/
-
+await app.Services.SeedSponsorshipTypesAsync();
+*/
 app.Run();
