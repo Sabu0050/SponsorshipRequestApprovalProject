@@ -58,15 +58,14 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
+
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "Sponsorship Request Approval API v1");
         options.DisplayRequestDuration();
     });
-}
+
 
 app.UseHttpsRedirection();
 app.UseRouting();

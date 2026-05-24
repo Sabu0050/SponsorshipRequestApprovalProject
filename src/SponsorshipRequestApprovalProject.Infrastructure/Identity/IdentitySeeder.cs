@@ -11,25 +11,25 @@ public static class IdentitySeeder
     private static readonly DemoUserSeed[] DemoUsers =
     [
         new(
-            Email: "requestor.demo@company.com",
+            Email: "requestor@techzu.com",
             FirstName: "Requestor",
             LastName: "Demo",
             Department: "Marketing",
             Role: ApplicationRoles.Requestor),
         new(
-            Email: "manager.demo@company.com",
+            Email: "manager@techzu.com",
             FirstName: "Manager",
             LastName: "Demo",
             Department: "Management",
             Role: ApplicationRoles.Manager),
         new(
-            Email: "finance.demo@company.com",
+            Email: "finance@techzu.com",
             FirstName: "Finance",
             LastName: "Demo",
             Department: "Finance",
             Role: ApplicationRoles.FinanceAdmin),
         new(
-            Email: "admin.demo@company.com",
+            Email: "admin@techzu.com",
             FirstName: "System",
             LastName: "Admin",
             Department: "IT",
