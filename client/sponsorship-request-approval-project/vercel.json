@@ -1,18 +1,18 @@
 {
-  "version": 2,
-  "builds": [
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist/sponsorship-request-approval-project/browser",
+  "rewrites": [
     {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist/sponsorship-request-approval-project/browser"
-      }
-    }
-  ],
-  "routes": [
+      "source": "/assets/(.*)",
+      "destination": "/assets/$1"
+    },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*\\.(js|css|ico|png|jpg|jpeg|svg|webp|woff|woff2|ttf|map))",
+      "destination": "/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
