@@ -30,14 +30,23 @@ public class SponsorshipRequestsController(ISender sender) : ControllerBase
         CreateSponsorshipRequestRequest request,
         CancellationToken cancellationToken)
     {
+        var createErrors = ValidateCreateOrUpdateRequest(request.Title, request.Description, request.SponsorName, request.CurrencyCode, request.SponsorshipTypeId);
+        if (createErrors.Count > 0)
+        {
+            return ValidationProblem(new ValidationProblemDetails(createErrors)
+            {
+                Title = "Please correct the highlighted fields and try again."
+            });
+        }
+
         var result = await sender.Send(
             new CreateSponsorshipRequestCommand(
-                request.Title,
-                request.Description,
+                request.Title.Trim(),
+                request.Description.Trim(),
                 request.SponsorshipTypeId,
-                request.SponsorName,
+                request.SponsorName.Trim(),
                 request.RequestedAmount,
-                request.CurrencyCode,
+                request.CurrencyCode.Trim(),
                 request.EventDate,
                 request.SponsorshipStartDate,
                 request.SponsorshipEndDate,
@@ -58,15 +67,35 @@ public class SponsorshipRequestsController(ISender sender) : ControllerBase
         UpdateSponsorshipRequestRequest request,
         CancellationToken cancellationToken)
     {
+        if (id == Guid.Empty)
+        {
+            return ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
+            {
+                { nameof(id), ["Request id is required."] }
+            })
+            {
+                Title = "Please correct the highlighted fields and try again."
+            });
+        }
+
+        var updateErrors = ValidateCreateOrUpdateRequest(request.Title, request.Description, request.SponsorName, request.CurrencyCode, request.SponsorshipTypeId);
+        if (updateErrors.Count > 0)
+        {
+            return ValidationProblem(new ValidationProblemDetails(updateErrors)
+            {
+                Title = "Please correct the highlighted fields and try again."
+            });
+        }
+
         var result = await sender.Send(
             new UpdateSponsorshipRequestCommand(
                 id,
-                request.Title,
-                request.Description,
+                request.Title.Trim(),
+                request.Description.Trim(),
                 request.SponsorshipTypeId,
-                request.SponsorName,
+                request.SponsorName.Trim(),
                 request.RequestedAmount,
-                request.CurrencyCode,
+                request.CurrencyCode.Trim(),
                 request.EventDate,
                 request.SponsorshipStartDate,
                 request.SponsorshipEndDate,
@@ -103,7 +132,13 @@ public class SponsorshipRequestsController(ISender sender) : ControllerBase
         CancellationToken cancellationToken)
     {
         var result = await sender.Send(new GetSponsorshipRequestByIdQuery(id), cancellationToken);
-        return result is null ? NotFound() : Ok(result);
+        return result is null
+            ? NotFound(new
+            {
+                title = "Sponsorship request not found.",
+                detail = "The requested sponsorship request could not be located."
+            })
+            : Ok(result);
     }
 
     [HttpGet("{id:guid}/workflow-history")]
@@ -250,5 +285,37 @@ public class SponsorshipRequestsController(ISender sender) : ControllerBase
         }
 
         return User.Claims.Any(claim => claim.Type == ApprovalStages.ClaimType && claim.Value == stage);
+    }
+
+    private static Dictionary<string, string[]> ValidateCreateOrUpdateRequest(
+        string? title,
+        string? description,
+        string? sponsorName,
+        string? currencyCode,
+        Guid sponsorshipTypeId)
+    {
+        var errors = new Dictionary<string, string[]>();
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            errors[nameof(title)] = ["Title is required."];
+        }
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            errors[nameof(description)] = ["Description is required."];
+        }
+        if (string.IsNullOrWhiteSpace(sponsorName))
+        {
+            errors[nameof(sponsorName)] = ["Sponsor name is required."];
+        }
+        if (string.IsNullOrWhiteSpace(currencyCode))
+        {
+            errors[nameof(currencyCode)] = ["Currency code is required."];
+        }
+        if (sponsorshipTypeId == Guid.Empty)
+        {
+            errors[nameof(sponsorshipTypeId)] = ["Sponsorship type is required."];
+        }
+
+        return errors;
     }
 }

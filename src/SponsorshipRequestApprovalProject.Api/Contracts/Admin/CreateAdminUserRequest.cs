@@ -1,9 +1,11 @@
+﻿using System.ComponentModel.DataAnnotations;
+
 namespace SponsorshipRequestApprovalProject.Api.Contracts.Admin;
 
 public record CreateAdminUserRequest(
-    string Email,
-    string Password,
-    string FirstName,
-    string LastName,
+    [param: Required, EmailAddress] string Email,
+    [param: Required, MinLength(8)] string Password,
+    [param: Required] string FirstName,
+    [param: Required] string LastName,
     string? Department,
-    string Role);
+    [param: Required] string Role);

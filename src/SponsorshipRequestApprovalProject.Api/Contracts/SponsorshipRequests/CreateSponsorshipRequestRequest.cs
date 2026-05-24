@@ -1,12 +1,14 @@
+﻿using System.ComponentModel.DataAnnotations;
+
 namespace SponsorshipRequestApprovalProject.Api.Contracts.SponsorshipRequests;
 
 public record CreateSponsorshipRequestRequest(
-    string Title,
-    string Description,
+    [param: Required, MinLength(1)] string Title,
+    [param: Required, MinLength(1)] string Description,
     Guid SponsorshipTypeId,
-    string SponsorName,
-    decimal RequestedAmount,
-    string CurrencyCode,
+    [param: Required, MinLength(1)] string SponsorName,
+    [param: Range(typeof(decimal), "0.01", "999999999999")] decimal RequestedAmount,
+    [param: Required, MinLength(1)] string CurrencyCode,
     DateOnly? EventDate,
     DateOnly? SponsorshipStartDate,
     DateOnly? SponsorshipEndDate);

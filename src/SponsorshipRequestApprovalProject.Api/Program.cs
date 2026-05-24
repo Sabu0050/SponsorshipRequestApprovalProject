@@ -4,6 +4,7 @@ using SponsorshipRequestApprovalProject.Application;
 using SponsorshipRequestApprovalProject.Infrastructure;
 using SponsorshipRequestApprovalProject.Infrastructure.Identity;
 using SponsorshipRequestApprovalProject.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 const string CorsPolicyName = "ClientCors";
@@ -13,6 +14,27 @@ var allowedOrigins = builder.Configuration
     ?? ["http://localhost:4200"];
 
 builder.Services.AddControllers();
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errors = context.ModelState
+            .Where(entry => entry.Value?.Errors.Count > 0)
+            .ToDictionary(
+                entry => entry.Key,
+                entry => entry.Value!.Errors
+                    .Select(error => string.IsNullOrWhiteSpace(error.ErrorMessage) ? "Invalid value." : error.ErrorMessage)
+                    .ToArray());
+
+        return new BadRequestObjectResult(new
+        {
+            title = "Please correct the highlighted fields and try again.",
+            status = StatusCodes.Status400BadRequest,
+            traceId = context.HttpContext.TraceIdentifier,
+            errors
+        });
+    };
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddCors(options =>
 {
@@ -71,6 +93,35 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors(CorsPolicyName);
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+app.UseStatusCodePages(async statusCodeContext =>
+{
+    var response = statusCodeContext.HttpContext.Response;
+    if (response.HasStarted)
+    {
+        return;
+    }
+
+    if (response.ContentLength is > 0 || !string.IsNullOrWhiteSpace(response.ContentType))
+    {
+        return;
+    }
+
+    var message = response.StatusCode switch
+    {
+        StatusCodes.Status401Unauthorized => "Authentication is required to access this resource.",
+        StatusCodes.Status403Forbidden => "You do not have permission to perform this action.",
+        StatusCodes.Status404NotFound => "The requested resource could not be found.",
+        _ => "Request could not be processed."
+    };
+
+    response.ContentType = "application/json";
+    await response.WriteAsJsonAsync(new
+    {
+        title = message,
+        status = response.StatusCode,
+        traceId = statusCodeContext.HttpContext.TraceIdentifier
+    });
+});
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers().RequireCors(CorsPolicyName);

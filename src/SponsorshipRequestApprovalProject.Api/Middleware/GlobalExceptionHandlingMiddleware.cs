@@ -18,8 +18,9 @@ public class GlobalExceptionHandlingMiddleware(
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
             await context.Response.WriteAsJsonAsync(new
             {
-                title = "Validation failed.",
+                title = "Please correct the highlighted fields and try again.",
                 status = StatusCodes.Status400BadRequest,
+                traceId = context.TraceIdentifier,
                 errors = exception.Errors
                     .GroupBy(error => error.PropertyName)
                     .ToDictionary(
@@ -32,9 +33,10 @@ public class GlobalExceptionHandlingMiddleware(
             context.Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
             await context.Response.WriteAsJsonAsync(new
             {
-                title = "Business rule violation.",
+                title = "This action could not be completed due to workflow rules.",
                 status = StatusCodes.Status422UnprocessableEntity,
-                detail = exception.Message
+                detail = exception.Message,
+                traceId = context.TraceIdentifier
             });
         }
         catch (Exception exception)
@@ -44,8 +46,10 @@ public class GlobalExceptionHandlingMiddleware(
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;
             await context.Response.WriteAsJsonAsync(new
             {
-                title = "An unexpected error occurred.",
-                status = StatusCodes.Status500InternalServerError
+                title = "Something went wrong while processing your request.",
+                detail = "Please try again in a moment. If the issue persists, contact support.",
+                status = StatusCodes.Status500InternalServerError,
+                traceId = context.TraceIdentifier
             });
         }
     }

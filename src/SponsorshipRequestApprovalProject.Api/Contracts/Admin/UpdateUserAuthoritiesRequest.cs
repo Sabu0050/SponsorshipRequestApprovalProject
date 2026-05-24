@@ -1,7 +1,9 @@
+﻿using System.ComponentModel.DataAnnotations;
+
 namespace SponsorshipRequestApprovalProject.Api.Contracts.Admin;
 
 public record UpdateUserAuthoritiesRequest(
-    string FirstName,
-    string LastName,
+    [param: Required] string FirstName,
+    [param: Required] string LastName,
     string? Department,
-    string Role);
+    [param: Required] string Role);

@@ -77,7 +77,7 @@ public class AdminController(RoleManager<IdentityRole> roleManager) : Controller
 
         await ApplyRoleAuthorityClaims(role, request.CanRequestorAccess, request.CanApproveManagerStage, request.CanApproveFinanceStage);
 
-        return Ok(new { Name = name });
+        return Created($"/api/admin/roles/{Uri.EscapeDataString(name)}", new { Name = name });
     }
 
     [HttpPut("roles/{name}")]
@@ -158,6 +158,18 @@ public class AdminController(RoleManager<IdentityRole> roleManager) : Controller
             });
         }
 
+        if (string.IsNullOrWhiteSpace(request.FirstName) || string.IsNullOrWhiteSpace(request.LastName))
+        {
+            return ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
+            {
+                { nameof(request.FirstName), ["First name is required."] },
+                { nameof(request.LastName), ["Last name is required."] }
+            })
+            {
+                Title = "Please correct the highlighted fields and try again."
+            });
+        }
+
         var existing = await userManager.FindByEmailAsync(request.Email);
         if (existing is not null)
         {
@@ -172,8 +184,8 @@ public class AdminController(RoleManager<IdentityRole> roleManager) : Controller
         {
             UserName = request.Email,
             Email = request.Email,
-            FirstName = request.FirstName.Trim(),
-            LastName = request.LastName.Trim(),
+            FirstName = request.FirstName?.Trim() ?? string.Empty,
+            LastName = request.LastName?.Trim() ?? string.Empty,
             Department = request.Department?.Trim(),
             IsActive = true
         };
@@ -190,7 +202,7 @@ public class AdminController(RoleManager<IdentityRole> roleManager) : Controller
 
         await userManager.AddToRoleAsync(user, request.Role);
 
-        return Ok(new { user.Id, user.Email, Role = request.Role });
+        return Created($"/api/admin/users/{user.Id}", new { user.Id, user.Email, Role = request.Role });
     }
 
     [HttpPut("users/{id}")]
@@ -218,8 +230,20 @@ public class AdminController(RoleManager<IdentityRole> roleManager) : Controller
             });
         }
 
-        user.FirstName = request.FirstName.Trim();
-        user.LastName = request.LastName.Trim();
+        if (string.IsNullOrWhiteSpace(request.FirstName) || string.IsNullOrWhiteSpace(request.LastName))
+        {
+            return ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
+            {
+                { nameof(request.FirstName), ["First name is required."] },
+                { nameof(request.LastName), ["Last name is required."] }
+            })
+            {
+                Title = "Please correct the highlighted fields and try again."
+            });
+        }
+
+        user.FirstName = request.FirstName?.Trim() ?? string.Empty;
+        user.LastName = request.LastName?.Trim() ?? string.Empty;
         user.Department = request.Department?.Trim();
         var userUpdateResult = await userManager.UpdateAsync(user);
         if (!userUpdateResult.Succeeded)

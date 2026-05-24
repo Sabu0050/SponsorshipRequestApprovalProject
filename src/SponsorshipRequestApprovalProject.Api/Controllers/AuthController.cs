@@ -59,7 +59,13 @@ public class AuthController(ISender sender) : ControllerBase
 
         if (result is null)
         {
-            return Unauthorized();
+            return Unauthorized(new
+            {
+                title = "Login failed.",
+                status = StatusCodes.Status401Unauthorized,
+                detail = "Invalid email or password.",
+                traceId = HttpContext.TraceIdentifier
+            });
         }
 
         return Ok(result);

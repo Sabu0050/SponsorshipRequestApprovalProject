@@ -43,7 +43,7 @@ public class SponsorshipTypesController(
         CreateSponsorshipTypeRequest request,
         CancellationToken cancellationToken)
     {
-        var name = request.Name.Trim();
+        var name = request.Name?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(name))
         {
             return ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
@@ -77,13 +77,15 @@ public class SponsorshipTypesController(
         dbContext.SponsorshipTypes.Add(entity);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return Ok(new SponsorshipTypeDto(
+        var dto = new SponsorshipTypeDto(
             entity.Id,
             entity.Name,
             entity.Description,
             entity.IsActive,
             entity.CreatedAt,
-            entity.UpdatedAt));
+            entity.UpdatedAt);
+
+        return CreatedAtAction(nameof(GetSponsorshipType), new { id = entity.Id }, dto);
     }
 
     [HttpPut("{id:guid}")]
@@ -104,7 +106,7 @@ public class SponsorshipTypesController(
             });
         }
 
-        var name = request.Name.Trim();
+        var name = request.Name?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(name))
         {
             return ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
