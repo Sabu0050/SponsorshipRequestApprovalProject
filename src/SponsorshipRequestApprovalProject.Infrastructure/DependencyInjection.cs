@@ -1,14 +1,15 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using SponsorshipRequestApprovalProject.Application.Common.Identity;
 using SponsorshipRequestApprovalProject.Application.Common.Interfaces;
 using SponsorshipRequestApprovalProject.Infrastructure.Identity;
 using SponsorshipRequestApprovalProject.Infrastructure.Persistence;
+using System.Security.Claims;
+using System.Text;
 
 namespace SponsorshipRequestApprovalProject.Infrastructure;
 
@@ -46,7 +47,8 @@ public static class DependencyInjection
                     ValidIssuer = jwtOptions.Issuer,
                     ValidAudience = jwtOptions.Audience,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
-                    ClockSkew = TimeSpan.Zero
+                    ClockSkew = TimeSpan.Zero,
+                    RoleClaimType = ClaimTypes.Role
                 };
             });
 
