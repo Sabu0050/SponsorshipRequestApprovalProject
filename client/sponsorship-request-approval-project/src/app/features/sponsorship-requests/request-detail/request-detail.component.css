@@ -1,0 +1,13 @@
+.panel p {
+  margin: 0 0 8px;
+}
+
+.actions {
+  margin-top: 10px;
+}
+
+@media (max-width: 640px) {
+  .actions button {
+    width: 100%;
+  }
+}

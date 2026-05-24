@@ -28,28 +28,30 @@
         </select>
         <button type="button" (click)="clearFilters()">Clear</button>
       </div>
-      <table>
-        <thead><tr><th>Request</th><th>Type</th><th>Amount</th><th>Status</th><th>Updated</th><th>Action</th></tr></thead>
-        <tbody>
-          @for (item of filtered; track item.id) {
-            <tr [class.selected]="selectedRequest?.id === item.id">
-              <td>{{ item.title }}<br /><span class="muted">{{ item.requestNumber }}</span></td>
-              <td>{{ item.sponsorshipTypeName }}</td>
-              <td>${{ item.requestedAmount | number:'1.0-0' }}</td>
-              <td><app-status-badge [status]="item.status" /></td>
-              <td>{{ item.createdAt | date:'mediumDate' }}</td>
-              <td><button type="button" (click)="select(item)">History</button></td>
-            </tr>
-          }
-        </tbody>
-      </table>
+      <div class="table-wrap admin-table-wrap">
+        <table>
+          <thead><tr><th>Request</th><th>Type</th><th>Amount</th><th>Status</th><th>Updated</th><th>Action</th></tr></thead>
+          <tbody>
+            @for (item of filtered; track item.id) {
+              <tr [class.selected]="selectedRequest?.id === item.id">
+                <td>{{ item.title }}<br /><span class="muted">{{ item.requestNumber }}</span></td>
+                <td>{{ item.sponsorshipTypeName }}</td>
+                <td>${{ item.requestedAmount | number:'1.0-0' }}</td>
+                <td><app-status-badge [status]="item.status" /></td>
+                <td>{{ item.createdAt | date:'mediumDate' }}</td>
+                <td><button type="button" (click)="select(item)">History</button></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <div class="panel">
       <h3>Sponsorship Types</h3>
       <div class="inline-form">
         <input [(ngModel)]="newTypeName" placeholder="New sponsorship type" />
-        <button type="button" class="primary" [disabled]="savingType || !canManageAdminConfig" (click)="addType()">Add</button>
+        <button type="button" class="primary inline-add-btn" [disabled]="savingType || !canManageAdminConfig" (click)="addType()"><i class="pi pi-plus"></i>Add</button>
       </div>
       <div class="chip-list">
         @for (type of sponsorshipTypes; track type.id) {
@@ -60,7 +62,7 @@
       </div>
       <h4 class="roles-title">System Roles</h4>
       <div class="inline-form">
-        <button type="button" class="primary" [disabled]="!canManageAdminConfig" (click)="openCreateRoleModal()">+ Add Role</button>
+        <button type="button" class="primary inline-add-btn" [disabled]="!canManageAdminConfig" (click)="openCreateRoleModal()"><i class="pi pi-plus"></i>Add Role</button>
       </div>
       <div class="chip-list">
         @for (role of visibleRoles; track role.name) {
@@ -71,20 +73,22 @@
       </div>
       <h4 class="roles-title">Users</h4>
       <div class="inline-form">
-        <button type="button" class="primary" (click)="openCreateUserModal()">+ Add User</button>
+        <button type="button" class="primary inline-add-btn" (click)="openCreateUserModal()"><i class="pi pi-user-plus"></i>Add User</button>
       </div>
-      <table>
-        <thead><tr><th>Email</th><th>Role</th><th></th></tr></thead>
-        <tbody>
-          @for (user of users; track user.id) {
-            <tr>
-              <td>{{ user.email }}</td>
-              <td>{{ user.role }}</td>
-              <td><button type="button" (click)="openEditUserModal(user)">Edit</button></td>
-            </tr>
-          }
-        </tbody>
-      </table>
+      <div class="table-wrap admin-table-wrap">
+        <table>
+          <thead><tr><th>Email</th><th>Role</th><th></th></tr></thead>
+          <tbody>
+            @for (user of users; track user.id) {
+              <tr>
+                <td>{{ user.email }}</td>
+                <td>{{ user.role }}</td>
+                <td><button type="button" (click)="openEditUserModal(user)">Edit</button></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -93,20 +97,22 @@
     @if (selectedRequest) {
       <p class="muted">Request: {{ selectedRequest.requestNumber }} - {{ selectedRequest.title }}</p>
     }
-    <table>
-      <thead><tr><th>Action</th><th>From</th><th>To</th><th>By</th><th>Date</th></tr></thead>
-      <tbody>
-        @for (row of history; track row.id) {
-          <tr>
-            <td>{{ normalizeAction(row.action) }}</td>
-            <td>{{ row.fromStatus === null || row.fromStatus === undefined ? '-' : normalizeStatus(row.fromStatus) }}</td>
-            <td>{{ normalizeStatus(row.toStatus) }}</td>
-            <td>{{ row.performedByName }}</td>
-            <td>{{ row.performedAt | date:'short' }}</td>
-          </tr>
-        }
-      </tbody>
-    </table>
+    <div class="table-wrap admin-table-wrap history-table-wrap">
+      <table>
+        <thead><tr><th>Action</th><th>From</th><th>To</th><th>By</th><th>Date</th></tr></thead>
+        <tbody>
+          @for (row of history; track row.id) {
+            <tr>
+              <td>{{ normalizeAction(row.action) }}</td>
+              <td>{{ row.fromStatus === null || row.fromStatus === undefined ? '-' : normalizeStatus(row.fromStatus) }}</td>
+              <td>{{ normalizeStatus(row.toStatus) }}</td>
+              <td>{{ row.performedByName }}</td>
+              <td>{{ row.performedAt | date:'short' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   </div>
 
   @if (showUserModal) {

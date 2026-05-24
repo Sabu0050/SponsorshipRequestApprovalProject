@@ -53,12 +53,33 @@ tr.selected {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  align-items: center;
 }
 
 .inline-form {
   display: flex;
   gap: 8px;
   margin: 0 0 10px;
+  align-items: center;
+}
+
+.inline-form > input,
+.inline-form > select {
+  min-width: 0;
+  width: 100%;
+}
+
+.inline-add-btn {
+  min-height: 42px;
+  min-width: 140px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
 .chip {
@@ -70,6 +91,10 @@ tr.selected {
   font-size: .82rem;
   font-weight: 600;
   cursor: pointer;
+  width: auto;
+  max-width: none;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .chip.inactive {
@@ -112,10 +137,68 @@ input, select {
     padding: 10px;
   }
 
-  table {
-    display: block;
+  .admin-table-wrap {
+    width: 100%;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-table-wrap table {
+    display: table;
+    width: max-content;
+    min-width: 760px;
     white-space: nowrap;
+  }
+
+  .history-table-wrap table {
+    min-width: 900px;
+  }
+
+  .inline-form {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+
+  .inline-form > input,
+  .inline-form > select {
+    width: 100%;
+  }
+
+  .inline-form button {
+    width: auto;
+    min-width: 120px;
+    justify-self: end;
+  }
+
+  .inline-form > button:only-child {
+    justify-self: start;
+  }
+
+  .chip-list {
+    gap: 6px;
+  }
+}
+
+@media (max-width: 640px) {
+  .inline-form {
+    grid-template-columns: 1fr;
+  }
+
+  .inline-form button {
+    width: 100%;
+    min-width: 0;
+    justify-self: stretch;
+  }
+
+  .inline-add-btn {
+    min-width: 0;
+  }
+
+  .chip {
+    width: 100%;
+    border-radius: 10px;
+    text-align: left;
   }
 }
 
@@ -139,6 +222,17 @@ input, select {
   top: 50%;
   transform: translate(-50%, -50%);
   z-index: 50;
+}
+
+@media (max-width: 640px) {
+  .modal {
+    width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    top: 8px;
+    left: 8px;
+    transform: none;
+    border-radius: 10px;
+  }
 }
 
 .check {

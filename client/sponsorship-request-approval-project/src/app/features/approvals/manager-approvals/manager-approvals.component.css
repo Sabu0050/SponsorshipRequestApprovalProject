@@ -23,6 +23,10 @@
   margin-top: 10px;
 }
 
+.action-stack button {
+  width: 100%;
+}
+
 tr.selected {
   background: #f1f6ff;
 }
@@ -30,5 +34,11 @@ tr.selected {
 @media (max-width: 1080px) {
   .manager-layout {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .detail-panel textarea {
+    min-height: 96px;
   }
 }

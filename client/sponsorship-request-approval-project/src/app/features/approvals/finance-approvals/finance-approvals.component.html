@@ -20,23 +20,25 @@
   <div class="finance-layout">
     <div class="panel">
       <h3>Requests</h3>
-      <table>
-        <thead><tr><th>Request</th><th>Type</th><th>Amount</th><th>Status</th><th>Updated</th><th>Actions</th></tr></thead>
-        <tbody>
-          @for (item of pending; track item.id) {
-            <tr [class.selected]="selectedRequest?.id === item.id">
-              <td>{{ item.title }}<br /><span class="muted">{{ item.requestNumber }}</span></td>
-              <td>{{ item.sponsorshipTypeName }}</td>
-              <td>${{ item.requestedAmount | number:'1.0-0' }}</td>
-              <td><app-status-badge [status]="item.status" /></td>
-              <td>{{ item.createdAt | date:'mediumDate' }}</td>
-              <td class="actions">
-                <button type="button" (click)="select(item)">Review</button>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Request</th><th>Type</th><th>Amount</th><th>Status</th><th>Updated</th><th>Actions</th></tr></thead>
+          <tbody>
+            @for (item of pending; track item.id) {
+              <tr [class.selected]="selectedRequest?.id === item.id">
+                <td>{{ item.title }}<br /><span class="muted">{{ item.requestNumber }}</span></td>
+                <td>{{ item.sponsorshipTypeName }}</td>
+                <td>${{ item.requestedAmount | number:'1.0-0' }}</td>
+                <td><app-status-badge [status]="item.status" /></td>
+                <td>{{ item.createdAt | date:'mediumDate' }}</td>
+                <td class="actions">
+                  <button type="button" (click)="select(item)">Review</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <div class="panel detail-panel" #detailPanel>

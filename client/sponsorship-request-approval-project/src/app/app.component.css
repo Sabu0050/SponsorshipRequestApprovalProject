@@ -4,13 +4,50 @@
 }
 
 .app-shell {
-  display: grid;
-  grid-template-columns: 220px 1fr;
+  position: relative;
+  display: block;
   min-height: calc(100vh - 56px);
+  width: 100%;
+}
+
+.app-shell.with-sidebar {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
 }
 
 .content {
   padding: 16px;
   background: #f6f8fb;
   overflow: auto;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.sidebar-backdrop {
+  position: fixed;
+  top: 56px;
+  left: 0;
+  width: 100vw;
+  height: calc(100vh - 56px);
+  background: rgba(15, 23, 42, 0.35);
+  border: 0;
+  margin: 0;
+  padding: 0;
+  z-index: 40;
+}
+
+@media (max-width: 992px) {
+  .app-shell.mobile {
+    overflow-x: hidden;
+  }
+
+  .app-shell,
+  .app-shell.with-sidebar {
+    display: block;
+  }
+
+  .content {
+    padding: 12px;
+  }
 }

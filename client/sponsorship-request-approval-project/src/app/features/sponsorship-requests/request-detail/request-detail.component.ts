@@ -13,7 +13,8 @@ import { normalizeAction, normalizeStatus, toStatusCode } from '../../../shared/
   selector: 'app-request-detail',
   standalone: true,
   imports: [FormsModule, StatusBadgeComponent, DatePipe],
-  templateUrl: './request-detail.component.html'
+  templateUrl: './request-detail.component.html',
+  styleUrls: ['./request-detail.component.css']
 })
 export class RequestDetailComponent implements OnInit {
   item?: SponsorshipRequestDetail;

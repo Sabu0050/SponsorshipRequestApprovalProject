@@ -1,8 +1,13 @@
 <p-toast />
 @if (authService.isAuthenticated()) {
-  <app-navbar />
-  <div class="app-shell">
-    <app-sidebar />
+  <app-navbar (toggleSidebar)="toggleSidebar()" />
+  <div class="app-shell" [class.mobile]="isMobile" [class.with-sidebar]="sidebarOpen && !isMobile">
+    @if (sidebarOpen) {
+      <app-sidebar [open]="sidebarOpen" [mobile]="isMobile" (navigate)="closeSidebarOnMobile()" />
+    }
+    @if (isMobile && sidebarOpen) {
+      <button type="button" class="sidebar-backdrop" (click)="toggleSidebar()" aria-label="Close sidebar"></button>
+    }
     <main class="content">
       <router-outlet />
     </main>

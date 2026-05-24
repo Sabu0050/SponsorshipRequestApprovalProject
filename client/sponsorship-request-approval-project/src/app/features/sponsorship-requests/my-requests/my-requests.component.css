@@ -45,3 +45,22 @@
 h3 {
   margin-bottom: 10px;
 }
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+@media (max-width: 992px) {
+  .header-row {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .create-link {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+}
