@@ -55,10 +55,10 @@ All seeded users use password: `Demo@12345`
 
 | Role | Email |
 |---|---|
-| Requestor | `requestor.demo@company.com` |
-| Manager | `manager.demo@company.com` |
-| FinanceAdmin | `finance.demo@company.com` |
-| SystemAdmin | `admin.demo@company.com` |
+| Requestor | `requestor@techzu.com` |
+| Manager | `manager@techzu.com` |
+| FinanceAdmin | `finance@techzu.com` |
+| SystemAdmin | `admin@techzu.com` |
 
 ## Repository Structure
 
